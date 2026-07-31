@@ -1,0 +1,73 @@
+<aside class="sidebar">
+
+  <a routerLink="/" class="logo d-flex align-items-center gap-2">
+    <i class="bi bi-collection-play-fill"></i>
+    <span>
+      Xel IF<span> TV</span>
+    </span>
+  </a>
+
+  <nav class="menu">
+
+    <a
+      routerLink="/"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }">
+
+      <i class="bi bi-house-fill"></i>
+      <span>Início</span>
+
+    </a>
+
+    <a
+      routerLink="/filmes"
+      routerLinkActive="active">
+
+      <i class="bi bi-film"></i>
+      <span>Filmes</span>
+
+    </a>
+
+    <a
+      routerLink="/series"
+      routerLinkActive="active">
+
+      <i class="bi bi-tv-fill"></i>
+      <span>Séries</span>
+
+    </a>
+
+    <a
+      routerLink="/favoritos"
+      routerLinkActive="active">
+
+      <i class="bi bi-heart-fill"></i>
+      <span>Favoritos</span>
+
+    </a>
+
+  </nav>
+
+  <div class="sidebar-bottom">
+
+    <div class="search">
+
+      <i class="bi bi-search"></i>
+
+      <input
+        type="text"
+        placeholder="Buscar..." />
+
+    </div>
+
+    <button class="profile">
+
+      <i class="bi bi-person-circle"></i>
+
+      <span>Perfil</span>
+
+    </button>
+
+  </div>
+
+</aside>

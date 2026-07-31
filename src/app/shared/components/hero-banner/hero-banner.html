@@ -1,0 +1,29 @@
+<section class="hero">
+  <div
+    class="hero__backdrop"
+    [style.background-image]="'url(' + (item().backdrop || item().poster) + ')'"
+  ></div>
+  <div class="hero__overlay"></div>
+  <div class="hero__content">
+    <span class="hero__featured"><i class="bi bi-star-fill"></i> Em destaque</span>
+    <h1 class="hero__title">{{ item().title }}</h1>
+    <div class="hero__meta">
+      <span class="hero__rating"><i class="bi bi-star-fill"></i> {{ item().rating.toFixed(1) }}</span>
+      <span>&middot; {{ item().year }}</span>
+      <span class="dot">&middot;</span>
+      <span>{{ item().type === 'movie' ? 'Filme' : 'Série' }}</span>
+      <span class="dot">&middot;</span>
+      <span>{{ item().genres.join(' · ') }}</span>
+    </div>
+    <p class="hero__overview">{{ item().overview }}</p>
+    <div class="hero__actions">
+      <button class="hero__btn hero__btn--primary" type="button">
+        <i class="bi bi-play-fill"></i> Assistir agora
+      </button>
+      <button class="hero__btn hero__btn--secondary" type="button">
+        <i class="bi bi-info-circle"></i> Mais informações
+      </button>
+    </div>
+  </div>
+  <div class="hero__fade"></div>
+</section>

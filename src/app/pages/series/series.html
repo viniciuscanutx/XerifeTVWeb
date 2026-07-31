@@ -1,0 +1,30 @@
+<app-hero-banner [item]="heroItem()" />
+
+<div class="page-content">
+
+  @if (search().trim() || genreFilter()) {
+    @if (series().length > 0) {
+      <div class="results-grid">
+        @for (item of series(); track item.id) {
+          <div class="results-grid__item">
+            <app-media-card [item]="item" />
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="no-results">
+        <i class="bi bi-emoji-frown"></i>
+        Nenhuma série encontrada.
+      </p>
+    }
+  } @else {
+    <app-media-carousel title="Todas as séries" icon="bi-tv" [items]="series()" />
+    @for (group of byGenre(); track group.genre) {
+      <app-media-carousel
+        [title]="group.genre"
+        icon="bi-tags-fill"
+        [items]="group.items"
+      />
+    }
+  }
+</div>

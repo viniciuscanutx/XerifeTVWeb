@@ -1,0 +1,31 @@
+<section class="carousel-section">
+  <div class="carousel-header">
+    <h2 class="carousel-title">
+      <i class="bi" [class]="icon()"></i>
+      {{ title() }}
+    </h2>
+    <a href="#" class="see-all">Ver todos <i class="bi bi-chevron-right"></i></a>
+  </div>
+
+  <div class="carousel-wrapper">
+    @if (canScrollLeft()) {
+      <button class="carousel-arrow carousel-arrow--left" type="button" (click)="scrollLeft()" aria-label="Anterior">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+    }
+
+    <div class="carousel-track" #track>
+      @for (item of items(); track item.id) {
+        <div class="carousel-item">
+          <app-media-card [item]="item" />
+        </div>
+      }
+    </div>
+
+    @if (canScrollRight()) {
+      <button class="carousel-arrow carousel-arrow--right" type="button" (click)="scrollRight()" aria-label="Próximo">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    }
+  </div>
+</section>

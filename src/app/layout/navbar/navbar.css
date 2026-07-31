@@ -1,0 +1,251 @@
+:host{
+  display:block;
+}
+
+.sidebar{
+
+  position:fixed;
+
+  top:0;
+  left:0;
+
+  width:260px;
+  height:100vh;
+
+  background:#0b0b0d;
+
+  border-right:1px solid rgba(255,255,255,.06);
+
+  display:flex;
+
+  flex-direction:column;
+
+  justify-content:space-between;
+
+  padding:24px 18px;
+
+  z-index:1000;
+
+}
+
+/* Logo */
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centraliza horizontalmente */
+  gap: 12px;
+
+  width: 100%;
+
+  text-decoration: none;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+
+  margin-bottom: 40px;
+}
+
+.logo i {
+  color: #E50914;
+  font-size: 2rem;
+}
+
+.logo span span {
+  color: #E50914;
+}
+
+/* Menu */
+
+.menu{
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:10px;
+
+}
+
+.menu a{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:16px;
+
+  padding:14px 16px;
+
+  border-radius:12px;
+
+  text-decoration:none;
+
+  color:#bdbdbd;
+
+  transition:.25s;
+
+}
+
+.menu a i{
+
+  font-size:1.3rem;
+
+}
+
+.menu a:hover{
+
+  background:#1a1a1d;
+
+  color:#fff;
+
+}
+
+.menu a.active{
+
+  background:#E50914;
+
+  color:#fff;
+
+}
+
+/* Bottom */
+
+.sidebar-bottom{
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:18px;
+
+}
+
+.search{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:10px;
+
+  background:#1b1b1f;
+
+  padding:12px 15px;
+
+  border-radius:12px;
+
+}
+
+.search i{
+
+  color:#888;
+
+}
+
+.search input{
+
+  flex:1;
+
+  background:none;
+
+  border:none;
+
+  outline:none;
+
+  color:white;
+
+}
+
+.search input::placeholder{
+
+  color:#777;
+
+}
+
+/* Perfil */
+
+.profile{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  width:100%;
+
+  padding:14px;
+
+  border:none;
+
+  border-radius:12px;
+
+  background:#1b1b1f;
+
+  color:white;
+
+  transition:.25s;
+
+}
+
+.profile:hover{
+
+  background:#E50914;
+
+}
+
+.profile i{
+
+  font-size:1.4rem;
+
+}
+
+/* Responsivo */
+
+@media(max-width:900px){
+
+  .sidebar{
+
+      width:75px;
+
+      padding:20px 12px;
+
+  }
+
+  .logo span,
+  .menu span,
+  .profile span,
+  .search input{
+
+      display:none;
+
+  }
+
+  .logo{
+
+      justify-content:center;
+
+  }
+
+  .menu a{
+
+      justify-content:center;
+
+      padding:14px;
+
+  }
+
+  .profile{
+
+      justify-content:center;
+
+  }
+
+  .search{
+
+      justify-content:center;
+
+  }
+
+}

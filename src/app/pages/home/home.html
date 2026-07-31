@@ -1,0 +1,27 @@
+<app-hero-banner [item]="heroItem()" />
+
+<div class="home-content">
+  <app-media-carousel
+    title="Em alta esta semana"
+    icon="bi-graph-up-arrow"
+    [items]="trending"
+  />
+
+  <app-media-carousel
+    title="Top 10 filmes"
+    icon="bi-trophy-fill"
+    [items]="movies"
+  />
+
+  <app-media-carousel
+    title="Séries imperdíveis"
+    icon="bi-tv-fill"
+    [items]="series"
+  />
+
+  <app-media-carousel
+    title="Melhores avaliados"
+    icon="bi-star-fill"
+    [items]="topRated"
+  />
+</div>
