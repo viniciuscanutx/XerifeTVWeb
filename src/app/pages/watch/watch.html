@@ -32,8 +32,12 @@
       <h1 class="main-title">{{ content.title }}</h1>
 
       <div class="action-buttons">
-        <button class="btn-primary">
-          <i class="bi bi-play-fill"></i> Assistir
+        <button class="btn-primary" (click)="openPlayer()" [disabled]="resolvingVideo()">
+          @if (resolvingVideo()) {
+            <i class="bi bi-hourglass-split"></i> Carregando vídeo...
+          } @else {
+            <i class="bi bi-play-fill"></i> Assistir
+          }
         </button>
         
         <button class="btn-secondary">
@@ -79,7 +83,7 @@
 
     <app-video-player-modal
       [open]="playerOpen()"
-      [src]="content.videoUrl ?? null"
+      [src]="content.videoUrl || content.videoResolverUrl || null"
       [streamFormat]="content.streamFormat || 'mp4'"
       [poster]="content.backdrop || content.poster"
       [title]="content.title"

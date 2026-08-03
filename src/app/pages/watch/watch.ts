@@ -103,11 +103,9 @@ export class Watch {
     this.resolvingVideo.set(true);
     this.api.resolveVideoUrl(resolverUrl).pipe(catchError(() => of(null))).subscribe((video) => {
       this.resolvingVideo.set(false);
-      if (!video?.url) {
-        this.playerError.set(true);
-        return;
-      }
-      this.item.update((item) => item ? { ...item, videoUrl: video.url, streamFormat: video.streamFormat } : item);
+      const url = video?.url || resolverUrl;
+      const format = video?.streamFormat || (url.includes('.m3u8') ? 'hls' : 'mp4');
+      this.item.update((item) => item ? { ...item, videoUrl: url, streamFormat: format } : item);
     });
   }
 

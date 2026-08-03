@@ -1,13 +1,72 @@
-  <div class="home-content">
-    <app-media-carousel
-        title="Em alta..."
-        icon="bi-graph-up-arrow"
-        [items]="trending()"
-    />
+@if (loading()) {
+<div class="loading-container">
+  <i class="bi bi-hourglass-split loading-icon"></i>
+  <p class="loading-text">Carregando catálogo...</p>
+</div>
+}
+@else if (error()) {
+<div class="error-container">
+  <i class="bi bi-exclamation-circle"></i>
+  <p>{{ error() }}</p>
+</div>
+}
+@else {
+<main class="home-wrapper">
+  @if (heroItem(); as hero) {
+  <section class="hero-banner">
 
-    <app-media-carousel
-        title="Em alta no IMDB"
-        icon="bi-graph-up-arrow"
-        [items]="topRated()"
-    />
+    <div class="hero-backdrop-container">
+      <img class="hero-backdrop" [src]="hero.backdrop || hero.poster" [alt]="hero.title" />
+      <div class="hero-gradient-left"></div>
+      <div class="hero-gradient-bottom"></div>
+    </div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <i class="bi bi-stars"></i> EM DESTAQUE
+      </div>
+
+      <h1 class="hero-title">{{ hero.title }}</h1>
+
+      <div class="hero-meta">
+        @if (hero.rating) {
+        <span class="meta-badge rating-badge">
+          <i class="bi bi-star-fill me-1"></i> {{ hero.rating.toFixed(1) }}
+        </span>
+        <span class="meta-dot">•</span>
+        <span class="meta-badge rating-badge">{{ hero.year }}</span>
+        }
+      </div>
+
+      @if (hero.overview) {
+      <p class="hero-overview">{{ hero.overview }}</p>
+      }
+
+      <div class="hero-actions">
+        <a class="btn-hero-primary" [routerLink]="['/watch', hero.type, hero.id]">
+          <i class="bi bi-play-fill"></i> Assistir
+        </a>
+
+        <a class="btn-hero-secondary" [routerLink]="['/watch', hero.type, hero.id]">
+          <i class="bi bi-info-circle"></i> Mais Detalhes
+        </a>
+      </div>
+    </div>
+  </section>
+  }
+
+  <div class="carousels-container">
+    @if (trending().length > 0) {
+    <app-media-carousel title="Em Alta" icon="bi-fire" [items]="trending()" />
+    }
+
+    @if (series().length > 0) {
+    <app-media-carousel title="Séries em Destaque" icon="bi-tv" [items]="series()" />
+    }
+
+    @if (topRated().length > 0) {
+    <app-media-carousel title="Mais Bem Avaliados (IMDb)" icon="bi-graph-up-arrow" [items]="topRated()" />
+    }
   </div>
+</main>
+}

@@ -60,7 +60,7 @@ export function mapHomeResponse(home: HomeResponse, movies: MovieResponse[], ser
     series: seriesItems,
     movieCategories: home.movieCategories ?? [],
     seriesCategories: home.seriesCategories ?? [],
-    trending: allItems.slice(0, 5),
-    topRated: [...allItems].sort((a, b) => b.rating - a.rating).slice(0, 5),
+    trending: allItems.slice(0, 10),
+    topRated: [...allItems].sort((a, b) => b.rating - a.rating).slice(0, 10),
   };
 }

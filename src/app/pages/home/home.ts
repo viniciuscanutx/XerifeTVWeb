@@ -1,18 +1,20 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MediaItem } from '../../shared/components/media-card/media-card';
 import { MediaCarousel } from '../../shared/components/media-carousel/media-carousel';
 import { ContentApiService } from '../../shared/data/content-api.service';
 import { mapHomeResponse, type HomeMappedData } from '../../shared/data/content-api.mapper';
+import { capitalizeFirstLetter } from '../../utils/utils';
 import { catchError, forkJoin, of } from 'rxjs';
 
 @Component({
   selector: 'app-home',
-  imports: [MediaCarousel],
+  imports: [MediaCarousel, RouterLink],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
-
 export class Home {
+  readonly capitalizeFirstLetter = capitalizeFirstLetter;
   private readonly api = inject(ContentApiService);
 
   readonly heroItem = signal<MediaItem | null>(null);
@@ -27,13 +29,13 @@ export class Home {
 
   constructor() {
     forkJoin({
+      home: this.api.getHome().pipe(catchError(() => of(null))),
       movies: this.api.getMovies().pipe(catchError(() => of([]))),
       series: this.api.getSeries().pipe(catchError(() => of([]))),
     }).subscribe({
-      next: ({ movies, series }) => {
-        
+      next: ({ home, movies, series }) => {
         const mapped: HomeMappedData = mapHomeResponse(
-          { featured: null, featuredType: 'movie', movieCategories: [], seriesCategories: [] },
+          home ?? { featured: null, featuredType: 'movie', movieCategories: [], seriesCategories: [] },
           movies,
           series,
         );
@@ -45,7 +47,7 @@ export class Home {
         this.topRated.set(mapped.topRated);
         this.loading.set(false);
 
-        if (!mapped.heroItem) {
+        if (!mapped.heroItem && mapped.movies.length === 0 && mapped.series.length === 0) {
           this.error.set('Não foi possível carregar o conteúdo.');
         }
       },
