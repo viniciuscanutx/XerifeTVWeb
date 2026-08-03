@@ -1,17 +1,17 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { MediaItem } from '../../shared/components/media-card/media-card';
 import { MediaCarousel } from '../../shared/components/media-carousel/media-carousel';
-import { HeroBanner } from '../../shared/components/hero-banner/hero-banner';
 import { ContentApiService } from '../../shared/data/content-api.service';
 import { mapHomeResponse, type HomeMappedData } from '../../shared/data/content-api.mapper';
 import { catchError, forkJoin, of } from 'rxjs';
 
 @Component({
   selector: 'app-home',
-  imports: [MediaCarousel, HeroBanner],
+  imports: [MediaCarousel],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
+
 export class Home {
   private readonly api = inject(ContentApiService);
 
@@ -31,8 +31,7 @@ export class Home {
       series: this.api.getSeries().pipe(catchError(() => of([]))),
     }).subscribe({
       next: ({ movies, series }) => {
-        // The API has no dependency on /home: the first available item is used
-        // as the featured banner and the same payload populates the carousels.
+        
         const mapped: HomeMappedData = mapHomeResponse(
           { featured: null, featuredType: 'movie', movieCategories: [], seriesCategories: [] },
           movies,

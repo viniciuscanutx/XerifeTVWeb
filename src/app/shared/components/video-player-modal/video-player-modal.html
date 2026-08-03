@@ -1,0 +1,25 @@
+@if (isOpen()) {
+  <div class="vpm" (click)="onOverlayClick($event)" role="dialog" aria-modal="true" [attr.aria-label]="title() || 'Player de vídeo'">
+    <div class="vpm__backdrop"></div>
+
+    <div class="vpm__dialog" (click)="$event.stopPropagation()">
+      <header class="vpm__header">
+        <h2 class="vpm__title">{{ title() }}</h2>
+        <button type="button" class="vpm__close" (click)="close()" aria-label="Fechar player">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </header>
+
+      <div class="vpm__player-wrapper" #playerWrapper>
+        @if (src(); as url) {
+          <app-video-player
+            [src]="url"
+            [streamFormat]="streamFormat()"
+            [poster]="poster()"
+            [autoplay]="true"
+          />
+        }
+      </div>
+    </div>
+  </div>
+}

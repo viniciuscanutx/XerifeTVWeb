@@ -35,8 +35,8 @@ export class ContentApiService {
     return this.http.get<HomeResponse>(`${this.base}/home`);
   }
 
-  getMovies(limit = 10): Observable<MovieResponse[]> {
-    return this.http.get<MovieResponse[]>(`${this.base}/movies`);
+  getMovies(limit = 60): Observable<MovieResponse[]> {
+    return this.http.get<MovieResponse[]>(`${this.base}/Movies?limit=${limit}`);
   }
 
   getSeries(limit = 10): Observable<SeriesSummaryResponse[]> {

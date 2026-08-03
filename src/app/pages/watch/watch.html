@@ -1,39 +1,90 @@
 @if (loading()) {
-  <main class="watch-state"><i class="bi bi-hourglass-split"></i> Carregando título...</main>
-} @else if (error()) {
   <main class="watch-state">
-    <p><i class="bi bi-emoji-frown"></i> {{ error() }}</p>
-    <a routerLink="/" class="back-link">Voltar ao início</a>
+    <i class="bi bi-hourglass-split"></i> Carregando título...
   </main>
-} @else if (item(); as content) {
+}
+@else if (item(); as content) {
   <main class="watch-page">
-    <section class="watch-player" [style.background-image]="'linear-gradient(rgba(7, 7, 9, .35), rgba(7, 7, 9, .9)), url(' + (content.backdrop || content.poster) + ')'">
-      <a routerLink="/" class="watch-back"><i class="bi bi-arrow-left"></i> Voltar</a>
-      <div class="player-placeholder">
-        <div class="player-placeholder__icon"><i class="bi bi-play-fill"></i></div>
-        <p>Player em breve</p>
-        <span>A estrutura já está pronta para receber a reprodução.</span>
-      </div>
-    </section>
+    
+    <div class="hero-section">
 
-    <section class="watch-details">
-      <img class="watch-poster" [src]="content.poster" [alt]="content.title" />
-      <div class="watch-info">
-        <span class="watch-type mt-4">{{ contentLabel() }}</span>
-        <h1 class="mb-3">{{ content.title }}</h1>
-        <div class="watch-meta mt-4 mb-3">
-          <span class="rating"><i class="bi bi-star-fill"></i> {{ content.rating.toFixed(1) }}</span>
-          @if (content.year) { <span>{{ content.year }}</span> }
-          @if (content.parentalRating) { <span class="age-rating">{{ content.parentalRating }}</span> }
-          @if (content.duration) { <span>{{ content.duration }}</span> }
-        </div>
-        <p class="watch-overview">{{ content.overview }}</p>
-        @if (content.genres.length) {
-          <div class="genres">
-            @for (genre of content.genres; track genre) { <span>{{ genre }}</span> }
+      <button class="top-left-btn" routerLink="/home">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+
+      <img class="hero-image" [src]="content.backdrop" [alt]="content.poster" />
+      <div class="hero-gradient"></div>
+      
+    </div>
+
+    <div class="content-overlay">
+      
+      <div class="tags-row">
+
+        <span class="tag tag-rating">
+          <i class="bi bi-star-fill"></i> {{ content.rating.toFixed(1) }}
+        </span>
+        
+        @if (content.duration) { <span class="tag">{{ content.duration }}</span> }
+        
+      </div>
+
+      <h1 class="main-title">{{ content.title }}</h1>
+
+      <div class="action-buttons">
+        <button class="btn-primary">
+          <i class="bi bi-play-fill"></i> Assistir
+        </button>
+        
+        <button class="btn-secondary">
+          <i class="bi bi-download"></i> Download
+        </button>
+      </div>
+
+      <div class="synopsis-card mb-4">
+        <h3 class="synopsis-title">Indicação Parental</h3>
+        
+        @if (parentalBadge(); as badge) {
+          <div class="parental-badge-row">
+            <span
+              class="parental-badge"
+              [style.color]="badge.color === '#000000' ? '#ffffff' : '#000000'"
+              [style.background-color]="badge.bgColor"
+            >{{ badge.label }}</span>
+            <span class="parental-description">{{ badge.description }}</span>
+          </div>
+        } @else if (content.parentalRating) {
+          <div class="genres-row">
+            <span>{{ content.parentalRating }}</span>
           </div>
         }
+
+        <h3 class="synopsis-title mt-4">GÊNEROS</h3>
+
+        <div class="genres-row">
+          @for (genre of content.genres; track genre) {
+            <span class="tag">{{ capitalizeFirstLetter(genre) }}</span>
+          }
+        </div>
       </div>
-    </section>
+
+
+      <div class="synopsis-card">
+        <h3 class="synopsis-title">SINOPSE</h3>
+        
+        <p class="synopsis-text">{{ content.overview }}</p>
+      </div>
+
+    </div>
+
+    <app-video-player-modal
+      [open]="playerOpen()"
+      [src]="content.videoUrl ?? null"
+      [streamFormat]="content.streamFormat || 'mp4'"
+      [poster]="content.backdrop || content.poster"
+      [title]="content.title"
+      (closed)="closePlayer()"
+    />
+
   </main>
 }

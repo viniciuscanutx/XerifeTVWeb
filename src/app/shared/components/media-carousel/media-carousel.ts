@@ -18,6 +18,7 @@ import { MediaCard, MediaItem } from '../media-card/media-card';
   templateUrl: './media-carousel.html',
   styleUrl: './media-carousel.css',
 })
+
 export class MediaCarousel implements AfterViewInit {
   readonly title = input.required<string>();
   readonly items = input.required<MediaItem[]>();
@@ -29,8 +30,6 @@ export class MediaCarousel implements AfterViewInit {
   protected readonly canScrollRight = signal(true);
 
   constructor() {
-    // The API populates this input after the carousel has been rendered. Once
-    // its cards are in the DOM, recalculate the navigation controls.
     effect(() => {
       this.items();
       afterNextRender(() => this.updateScrollState(), { injector: this.injector });

@@ -4,21 +4,42 @@ import { catchError, map, of, switchMap } from 'rxjs';
 import { MediaItem } from '../../shared/components/media-card/media-card';
 import { ContentApiService } from '../../shared/data/content-api.service';
 import { seriesToMediaItem, toMediaItem } from '../../shared/data/content-api.mapper';
+import { capitalizeFirstLetter } from '../../utils/utils';
+import { VideoPlayerModal } from '../../shared/components/video-player-modal/video-player-modal';
 
 interface WatchItem extends MediaItem {
   duration?: string;
   parentalRating?: string;
   videoUrl?: string | null;
   videoResolverUrl?: string | null;
+  streamFormat?: string;
 }
+
+interface ParentalBadge {
+  label: string;
+  color: string;
+  bgColor: string;
+  description: string;
+}
+
+const PARENTAL_BADGES: Record<string, ParentalBadge> = {
+  'L':    { label: 'L',    color: '#00b04f', bgColor: '#00b04f', description: 'Livre' },
+  '10':   { label: '10',   color: '#00aaff', bgColor: '#00aaff', description: 'Não recomendado para menores de 10 anos' },
+  '12':   { label: '12',   color: '#ffc107', bgColor: '#ffc107', description: 'Não recomendado para menores de 12 anos' },
+  '14':   { label: '14',   color: '#ff8c00', bgColor: '#ff8c00', description: 'Não recomendado para menores de 14 anos' },
+  '16':   { label: '16',   color: '#ff0000', bgColor: '#ff0000', description: 'Não recomendado para menores de 16 anos' },
+  '18':   { label: '18',   color: '#000000', bgColor: '#000000', description: 'Não recomendado para menores de 18 anos' },
+};
 
 @Component({
   selector: 'app-watch',
-  imports: [RouterLink],
+  imports: [RouterLink, VideoPlayerModal],
   templateUrl: './watch.html',
   styleUrl: './watch.css',
 })
 export class Watch {
+  readonly capitalizeFirstLetter = capitalizeFirstLetter;
+
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(ContentApiService);
 
@@ -27,7 +48,24 @@ export class Watch {
   readonly error = signal<string | null>(null);
   readonly playerError = signal(false);
   readonly resolvingVideo = signal(false);
+  readonly playerOpen = signal(false);
   readonly contentLabel = computed(() => this.item()?.type === 'series' ? 'Série' : 'Filme');
+  readonly parentalBadge = computed<ParentalBadge | null>(() => {
+    const raw = this.item()?.parentalRating?.trim().toUpperCase() ?? '';
+    if (!raw) return null;
+    for (const key of Object.keys(PARENTAL_BADGES)) {
+      if (raw === key || raw.includes(key)) return PARENTAL_BADGES[key];
+    }
+    return null;
+  });
+
+  openPlayer(): void {
+    this.playerOpen.set(true);
+  }
+
+  closePlayer(): void {
+    this.playerOpen.set(false);
+  }
 
   constructor() {
     this.route.paramMap.pipe(
@@ -69,7 +107,10 @@ export class Watch {
         this.playerError.set(true);
         return;
       }
-      this.item.update((item) => item ? { ...item, videoUrl: video.url } : item);
+      this.item.update((item) => item ? { ...item, videoUrl: video.url, streamFormat: video.streamFormat } : item);
     });
   }
+
+  
+
 }

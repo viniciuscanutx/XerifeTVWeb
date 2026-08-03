@@ -1,0 +1,104 @@
+<div
+  class="vp"
+  [class.vp--fullscreen]="isFullscreen()"
+  [class.vp--buffering]="isBuffering()"
+  tabindex="0"
+  (mousemove)="onMouseMove()"
+  (keydown)="onKeydown($event)"
+>
+  <video
+    #videoRef
+    class="vp__video"
+    [poster]="poster()"
+    playsinline
+    preload="metadata"
+  ></video>
+
+  <div class="vp__big-play" [class.is-hidden]="videoState() !== 'paused' && videoState() !== 'idle'">
+    <button type="button" class="vp__big-btn" (click)="togglePlay($event)" aria-label="Reproduzir">
+      <i class="bi" [class.bi-play-fill]="videoState() !== 'ended'" [class.bi-arrow-counterclockwise]="videoState() === 'ended'"></i>
+    </button>
+  </div>
+
+  @if (isBuffering()) {
+    <div class="vp__spinner" aria-hidden="true">
+      <div class="vp__spinner-inner"></div>
+    </div>
+  }
+
+  <div class="vp__overlay" [class.is-hidden]="!showControls()" (click)="togglePlay($event)"></div>
+
+  @if (videoState() === 'error') {
+    <div class="vp__error">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <p>{{ errorMessage() }}</p>
+      <button type="button" class="vp__retry" (click)="retry()">Tentar novamente</button>
+    </div>
+  }
+
+  <div class="vp__controls" [class.is-hidden]="!showControls()">
+    <div class="vp__progress" (click)="jumpProgress($event)">
+      <div class="vp__progress-buffered" [style.width.%]="bufferedProgress()"></div>
+      <div class="vp__progress-played" [style.width.%]="progress()"></div>
+    </div>
+
+    <div class="vp__row">
+      <div class="vp__group">
+        <button type="button" class="vp__btn" (click)="togglePlay($event)" [attr.aria-label]="videoState() === 'playing' ? 'Pausar' : 'Reproduzir'">
+          <i class="bi" [class.bi-play-fill]="videoState() !== 'playing'" [class.bi-pause-fill]="videoState() === 'playing'"></i>
+        </button>
+        <button type="button" class="vp__btn" (click)="seekBackward()" aria-label="Retroceder 10s">
+          <i class="bi bi-arrow-counterclockwise"></i>
+        </button>
+        <button type="button" class="vp__btn" (click)="seekForward()" aria-label="Avançar 10s">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+
+        <div class="vp__volume" (mouseenter)="showVolume.set(true)" (mouseleave)="showVolume.set(false)">
+          <button type="button" class="vp__btn" (click)="toggleMute()" [attr.aria-label]="isMuted() ? 'Ativar som' : 'Mudo'">
+            <i class="bi" [class.bi-volume-mute-fill]="isMuted() || volume() === 0" [class.bi-volume-up-fill]="!isMuted() && volume() > 0"></i>
+          </button>
+          <div class="vp__volume-bar" [class.is-visible]="showVolume()">
+            <input
+              type="range" min="0" max="1" step="0.01"
+              [value]="isMuted() ? 0 : volume()"
+              (input)="changeVolume($any($event.target).valueAsNumber)"
+              aria-label="Volume"
+            />
+          </div>
+        </div>
+
+        <span class="vp__time">{{ currentTimeLabel() }} <span class="vp__sep">/</span> {{ durationLabel() }}</span>
+      </div>
+
+      <div class="vp__group">
+        @if (qualities().length > 1) {
+          <div class="vp__settings">
+            <button type="button" class="vp__btn" (click)="showSettings.set(!showSettings())" aria-label="Qualidade">
+              <i class="bi bi-gear-fill"></i>
+              <span class="vp__quality-label">{{ currentQuality() === -1 ? 'AUTO' : qualities().find(q => q.hlsIndex === currentQuality())?.label }}</span>
+            </button>
+            @if (showSettings()) {
+              <div class="vp__menu" (mouseleave)="showSettings.set(false)">
+                <div class="vp__menu-title">Qualidade</div>
+                <button type="button" class="vp__menu-item" [class.is-active]="currentQuality() === -1" (click)="selectQuality(-1)">Automática</button>
+                @for (q of qualities(); track q.hlsIndex) {
+                  <button type="button" class="vp__menu-item" [class.is-active]="currentQuality() === q.hlsIndex" (click)="selectQuality(q.hlsIndex)">{{ q.label }}</button>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <button type="button" class="vp__btn vp__btn--rate" (click)="loopRates()">
+          <i class="bi bi-speedometer2"></i>
+          <span>{{ playbackRate() === 1 ? '1x' : playbackRate() + 'x' }}</span>
+        </button>
+
+        <button type="button" class="vp__btn" (click)="toggleFullscreen()" [attr.aria-label]="isFullscreen() ? 'Sair de tela cheia' : 'Tela cheia'">
+          <i class="bi" [class.bi-fullscreen]="!isFullscreen()" [class.bi-fullscreen-exit]="isFullscreen()"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
