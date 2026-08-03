@@ -7,6 +7,12 @@
   cursor: pointer;
 }
 
+.poster-card:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
 .poster-card__image-wrap {
   position: relative;
   aspect-ratio: 2 / 3;
@@ -19,6 +25,7 @@
 
 .poster-card:hover .poster-card__image-wrap {
   transform: scale(1.12);
+  margin-bottom: 16px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(255, 255, 255, 0.12);
   z-index: 20;
 }

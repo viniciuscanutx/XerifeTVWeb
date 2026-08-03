@@ -1,7 +1,8 @@
 import { Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 export interface MediaItem {
-  id: number;
+  id: string;
   title: string;
   type: 'movie' | 'series';
   year: number;
@@ -14,7 +15,7 @@ export interface MediaItem {
 
 @Component({
   selector: 'app-media-card',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './media-card.html',
   styleUrl: './media-card.css',
 })

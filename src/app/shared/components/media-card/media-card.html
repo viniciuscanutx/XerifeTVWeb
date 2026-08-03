@@ -1,4 +1,4 @@
-<div class="poster-card">
+<div class="poster-card" [routerLink]="['/watch', item().type, item().id]" tabindex="0">
   <div class="poster-card__image-wrap">
     <img [src]="item().poster" [alt]="item().title" loading="lazy" />
     <span class="poster-card__badge">{{ item().type === 'movie' ? 'Filme' : 'Série' }}</span>

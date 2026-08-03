@@ -1,0 +1,39 @@
+@if (loading()) {
+  <main class="watch-state"><i class="bi bi-hourglass-split"></i> Carregando título...</main>
+} @else if (error()) {
+  <main class="watch-state">
+    <p><i class="bi bi-emoji-frown"></i> {{ error() }}</p>
+    <a routerLink="/" class="back-link">Voltar ao início</a>
+  </main>
+} @else if (item(); as content) {
+  <main class="watch-page">
+    <section class="watch-player" [style.background-image]="'linear-gradient(rgba(7, 7, 9, .35), rgba(7, 7, 9, .9)), url(' + (content.backdrop || content.poster) + ')'">
+      <a routerLink="/" class="watch-back"><i class="bi bi-arrow-left"></i> Voltar</a>
+      <div class="player-placeholder">
+        <div class="player-placeholder__icon"><i class="bi bi-play-fill"></i></div>
+        <p>Player em breve</p>
+        <span>A estrutura já está pronta para receber a reprodução.</span>
+      </div>
+    </section>
+
+    <section class="watch-details">
+      <img class="watch-poster" [src]="content.poster" [alt]="content.title" />
+      <div class="watch-info">
+        <span class="watch-type mt-4">{{ contentLabel() }}</span>
+        <h1 class="mb-3">{{ content.title }}</h1>
+        <div class="watch-meta mt-4 mb-3">
+          <span class="rating"><i class="bi bi-star-fill"></i> {{ content.rating.toFixed(1) }}</span>
+          @if (content.year) { <span>{{ content.year }}</span> }
+          @if (content.parentalRating) { <span class="age-rating">{{ content.parentalRating }}</span> }
+          @if (content.duration) { <span>{{ content.duration }}</span> }
+        </div>
+        <p class="watch-overview">{{ content.overview }}</p>
+        @if (content.genres.length) {
+          <div class="genres">
+            @for (genre of content.genres; track genre) { <span>{{ genre }}</span> }
+          </div>
+        }
+      </div>
+    </section>
+  </main>
+}

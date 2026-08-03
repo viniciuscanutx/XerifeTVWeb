@@ -1,8 +1,10 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { MediaCard, MediaItem } from '../../shared/components/media-card/media-card';
 import { MediaCarousel } from '../../shared/components/media-carousel/media-carousel';
 import { HeroBanner } from '../../shared/components/hero-banner/hero-banner';
-import { MEDIA_DATA } from '../../shared/data/media.data';
+import { ContentApiService } from '../../shared/data/content-api.service';
+import { seriesToMediaItem } from '../../shared/data/content-api.mapper';
+import { catchError, forkJoin, of } from 'rxjs';
 
 @Component({
   selector: 'app-series',
@@ -11,18 +13,22 @@ import { MEDIA_DATA } from '../../shared/data/media.data';
   styleUrl: './series.css',
 })
 export class Series {
-  private readonly allSeries = MEDIA_DATA.filter((m) => m.type === 'series');
+  private readonly api = inject(ContentApiService);
+
+  readonly allSeries = signal<MediaItem[]>([]);
+  readonly categories = signal<string[]>([]);
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
+
   readonly search = signal('');
   readonly genreFilter = signal('');
 
-  readonly heroItem = signal<MediaItem>(this.allSeries[0]);
+  readonly heroItem = signal<MediaItem | null>(null);
 
-  readonly genres = [...new Set(this.allSeries.flatMap((m) => m.genres))].sort();
-
-  readonly series = computed<MediaItem[]>(() => {
+  readonly filteredSeries = computed<MediaItem[]>(() => {
     const term = this.search().toLowerCase().trim();
     const genre = this.genreFilter();
-    return this.allSeries.filter((m) => {
+    return this.allSeries().filter((m) => {
       const matchesTerm = !term || m.title.toLowerCase().includes(term);
       const matchesGenre = !genre || m.genres.includes(genre);
       return matchesTerm && matchesGenre;
@@ -33,12 +39,41 @@ export class Series {
     const genre = this.genreFilter();
     if (genre) return [];
     const map = new Map<string, MediaItem[]>();
-    for (const m of this.series()) {
+    for (const m of this.filteredSeries()) {
       for (const g of m.genres) {
         if (!map.has(g)) map.set(g, []);
         map.get(g)!.push(m);
       }
     }
-    return [...map.entries()].map(([genre, items]) => ({ genre, items }));
+    return [...map.entries()]
+      .filter(([g]) => this.categories().includes(g))
+      .map(([genre, items]) => ({ genre, items }));
   });
+
+  constructor() {
+    forkJoin({
+      series: this.api.getSeries(30).pipe(catchError(() => of([]))),
+      categories: this.api.getSeriesCategories(15).pipe(catchError(() => of([]))),
+    }).subscribe({
+      next: ({ series, categories }) => {
+        const items = series.map(seriesToMediaItem);
+        this.allSeries.set(items);
+        this.categories.set(categories);
+        this.heroItem.set(items[0] ?? null);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('Não foi possível carregar as séries.');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  onSearch(term: string): void {
+    this.search.set(term);
+  }
+
+  onGenreChange(genre: string): void {
+    this.genreFilter.set(genre);
+  }
 }

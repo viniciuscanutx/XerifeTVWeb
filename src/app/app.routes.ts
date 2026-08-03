@@ -16,5 +16,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/series/series').then((m) => m.Series),
     title: 'Xel If TV - Séries',
   },
+  {
+    path: 'watch/:type/:id',
+    loadComponent: () => import('./pages/watch/watch').then((m) => m.Watch),
+    title: 'Xel If TV - Detalhes',
+  },
   { path: '**', redirectTo: '' },
 ];

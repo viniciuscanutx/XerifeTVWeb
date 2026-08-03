@@ -4,6 +4,10 @@ import {
   viewChild,
   ElementRef,
   AfterViewInit,
+  inject,
+  Injector,
+  afterNextRender,
+  effect,
   signal,
 } from '@angular/core';
 import { MediaCard, MediaItem } from '../media-card/media-card';
@@ -20,8 +24,18 @@ export class MediaCarousel implements AfterViewInit {
   readonly icon = input<string>('bi-fire');
 
   private readonly trackRef = viewChild.required<ElementRef<HTMLElement>>('track');
+  private readonly injector = inject(Injector);
   protected readonly canScrollLeft = signal(false);
   protected readonly canScrollRight = signal(true);
+
+  constructor() {
+    // The API populates this input after the carousel has been rendered. Once
+    // its cards are in the DOM, recalculate the navigation controls.
+    effect(() => {
+      this.items();
+      afterNextRender(() => this.updateScrollState(), { injector: this.injector });
+    });
+  }
 
   ngAfterViewInit() {
     this.updateScrollState();

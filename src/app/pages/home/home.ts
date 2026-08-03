@@ -1,8 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { MediaItem } from '../../shared/components/media-card/media-card';
 import { MediaCarousel } from '../../shared/components/media-carousel/media-carousel';
 import { HeroBanner } from '../../shared/components/hero-banner/hero-banner';
-import { MEDIA_DATA } from '../../shared/data/media.data';
+import { ContentApiService } from '../../shared/data/content-api.service';
+import { mapHomeResponse, type HomeMappedData } from '../../shared/data/content-api.mapper';
+import { catchError, forkJoin, of } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -11,10 +13,47 @@ import { MEDIA_DATA } from '../../shared/data/media.data';
   styleUrl: './home.css',
 })
 export class Home {
-  readonly heroItem = signal<MediaItem>(MEDIA_DATA[0]);
-  readonly allItems = MEDIA_DATA;
-  readonly trending = MEDIA_DATA.slice(0, 8);
-  readonly movies = MEDIA_DATA.filter((m) => m.type === 'movie');
-  readonly series = MEDIA_DATA.filter((m) => m.type === 'series');
-  readonly topRated = [...MEDIA_DATA].sort((a, b) => b.rating - a.rating).slice(0, 8);
+  private readonly api = inject(ContentApiService);
+
+  readonly heroItem = signal<MediaItem | null>(null);
+  readonly trending = signal<MediaItem[]>([]);
+  readonly movies = signal<MediaItem[]>([]);
+  readonly series = signal<MediaItem[]>([]);
+  readonly topRated = signal<MediaItem[]>([]);
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
+
+  readonly hasData = computed(() => this.heroItem() !== null);
+
+  constructor() {
+    forkJoin({
+      movies: this.api.getMovies().pipe(catchError(() => of([]))),
+      series: this.api.getSeries().pipe(catchError(() => of([]))),
+    }).subscribe({
+      next: ({ movies, series }) => {
+        // The API has no dependency on /home: the first available item is used
+        // as the featured banner and the same payload populates the carousels.
+        const mapped: HomeMappedData = mapHomeResponse(
+          { featured: null, featuredType: 'movie', movieCategories: [], seriesCategories: [] },
+          movies,
+          series,
+        );
+
+        this.heroItem.set(mapped.heroItem);
+        this.trending.set(mapped.trending);
+        this.movies.set(mapped.movies);
+        this.series.set(mapped.series);
+        this.topRated.set(mapped.topRated);
+        this.loading.set(false);
+
+        if (!mapped.heroItem) {
+          this.error.set('Não foi possível carregar o conteúdo.');
+        }
+      },
+      error: () => {
+        this.error.set('Não foi possível carregar o conteúdo.');
+        this.loading.set(false);
+      },
+    });
+  }
 }

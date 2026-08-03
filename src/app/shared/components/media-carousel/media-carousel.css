@@ -58,8 +58,12 @@
 }
 
 .carousel-item {
+  /* Bootstrap uses this class for its own slider and overlays its slides. */
+  display: block;
+  float: none;
   flex: 0 0 auto;
-  width: 200px;
+  width: 260px;
+  margin-right: 0;
 }
 
 /* Arrows */
