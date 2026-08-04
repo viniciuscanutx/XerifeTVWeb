@@ -8,6 +8,7 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
@@ -35,6 +36,9 @@ export class VideoPlayer implements OnDestroy {
   readonly streamFormat = input<string>('mp4');
   readonly poster = input<string | null>(null);
   readonly autoplay = input<boolean>(true);
+  readonly startTime = input<number>(0);
+
+  readonly timeUpdate = output<{ currentTime: number; duration: number }>();
 
   private readonly videoRef = viewChild<ElementRef<HTMLVideoElement>>('videoRef');
 
@@ -131,6 +135,10 @@ export class VideoPlayer implements OnDestroy {
       this.duration.set(video.duration || 0);
       this.volume.set(video.volume);
       this.isMuted.set(video.muted);
+      const st = this.startTime();
+      if (st > 0 && video.duration && st < video.duration - 5) {
+        video.currentTime = st;
+      }
     };
     const onWaiting = () => this.isBuffering.set(true);
     const onPlaying = () => this.isBuffering.set(false);
@@ -144,6 +152,7 @@ export class VideoPlayer implements OnDestroy {
     const onTimeUpdate = () => {
       this.currentTime.set(video.currentTime);
       this.updateBuffered(video);
+      this.timeUpdate.emit({ currentTime: video.currentTime, duration: video.duration || 0 });
     };
     const onWebkitBeginFS = () => this.zone.run(() => this.isFullscreenNative.set(true));
     const onWebkitEndFS = () =>

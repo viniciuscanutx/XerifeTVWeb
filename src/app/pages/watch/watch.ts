@@ -6,6 +6,7 @@ import { ContentApiService } from '../../shared/data/content-api.service';
 import { seriesToMediaItem, toMediaItem } from '../../shared/data/content-api.mapper';
 import { capitalizeFirstLetter } from '../../utils/utils';
 import { VideoPlayerModal } from '../../shared/components/video-player-modal/video-player-modal';
+import { WatchHistoryService } from '../../shared/services/watch-history.service';
 
 export interface EpisodeItem {
   id: string;
@@ -57,6 +58,7 @@ export class Watch {
 
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(ContentApiService);
+  private readonly watchHistory = inject(WatchHistoryService);
 
   readonly item = signal<WatchItem | null>(null);
   readonly loading = signal(true);
@@ -64,6 +66,7 @@ export class Watch {
   readonly playerError = signal(false);
   readonly resolvingVideo = signal(false);
   readonly playerOpen = signal(false);
+  readonly savedStartTime = signal<number>(0);
 
   // Audio selection signal ('dub' = Dublado, 'sub' = Legendado)
   readonly selectedAudio = signal<'dub' | 'sub'>('dub');
@@ -175,7 +178,16 @@ export class Watch {
 
   openPlayer(): void {
     const item = this.item();
-    if (item?.type === 'series') {
+    if (!item) return;
+
+    const history = this.watchHistory.getItemHistory(item.id);
+    if (history && history.currentTime > 0) {
+      this.savedStartTime.set(history.currentTime);
+    } else {
+      this.savedStartTime.set(0);
+    }
+
+    if (item.type === 'series') {
       const epList = this.episodes();
       const ep = this.activeEpisode() || epList[0];
       if (ep) {
@@ -183,7 +195,7 @@ export class Watch {
       } else {
         this.playerOpen.set(true);
       }
-    } else if (item) {
+    } else {
       this.activeEpisode.set(null);
       const resolverUrl = this.getActiveResolverUrl(item);
       if (resolverUrl) {
@@ -198,13 +210,43 @@ export class Watch {
       } else {
         this.playerOpen.set(true);
       }
-    } else {
-      this.playerOpen.set(true);
     }
   }
 
   closePlayer(): void {
     this.playerOpen.set(false);
+  }
+
+  onTimeUpdate(evt: { currentTime: number; duration: number }): void {
+    const item = this.item();
+    if (!item || evt.duration <= 0) return;
+
+    if (item.type === 'series') {
+      const ep = this.activeEpisode();
+      this.watchHistory.saveProgress({
+        contentId: item.id,
+        type: 'series',
+        title: item.title,
+        poster: item.poster,
+        backdrop: item.backdrop,
+        season: ep?.season ?? this.selectedSeason(),
+        episodeId: ep?.id,
+        episodeNumber: ep?.number,
+        episodeTitle: ep?.title,
+        currentTime: evt.currentTime,
+        duration: evt.duration,
+      });
+    } else {
+      this.watchHistory.saveProgress({
+        contentId: item.id,
+        type: 'movie',
+        title: item.title,
+        poster: item.poster,
+        backdrop: item.backdrop,
+        currentTime: evt.currentTime,
+        duration: evt.duration,
+      });
+    }
   }
 
   selectSeason(season: number): void {
@@ -228,6 +270,15 @@ export class Watch {
   }
 
   playEpisode(ep: EpisodeItem): void {
+    const item = this.item();
+    if (item) {
+      const history = this.watchHistory.getItemHistory(item.id);
+      if (history && history.episodeId === ep.id && history.currentTime > 0) {
+        this.savedStartTime.set(history.currentTime);
+      } else {
+        this.savedStartTime.set(0);
+      }
+    }
     this.activeEpisode.set(ep);
     this.loadEpisodeVideo(ep, true);
   }

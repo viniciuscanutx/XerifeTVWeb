@@ -241,9 +241,173 @@
   gap: 36px;
 }
 
-/* ==========================================================================
-   Media Queries
-   ========================================================================== */
+
+.continue-section {
+  margin-left: 22px;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.text-purple {
+  color: #9b68ff;
+}
+
+.continue-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 6px 4px 14px 0;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.continue-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.continue-card {
+  position: relative;
+  flex: 0 0 240px;
+  width: 240px;
+  background: #14141d;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.continue-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(155, 104, 255, 0.25);
+  border-color: rgba(155, 104, 255, 0.4);
+}
+
+.continue-card__image-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: #1a1a24;
+}
+
+.continue-card__image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.continue-card:hover .continue-card__image-wrap img {
+  transform: scale(1.05);
+}
+
+.continue-card__remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.continue-card:hover .continue-card__remove {
+  opacity: 1;
+}
+
+.continue-card__remove:hover {
+  background: #ff4757;
+  border-color: #ff4757;
+}
+
+.continue-card__play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.continue-card:hover .continue-card__play-overlay {
+  opacity: 1;
+}
+
+.play-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #9b68ff;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 14px rgba(155, 104, 255, 0.5);
+  padding-left: 3px;
+}
+
+.continue-card__progress-bg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  z-index: 4;
+}
+
+.continue-card__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #9b68ff, #d8c2ff);
+  border-radius: 0 2px 2px 0;
+}
+
+.continue-card__info {
+  padding: 12px 14px;
+}
+
+.continue-card__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.continue-card__meta {
+  font-size: 12px;
+  color: #9a9ab0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 
 @media (max-width: 768px) {
   .hero-banner {
@@ -285,5 +449,20 @@
   .carousels-container {
     padding: 0 16px 40px;
     gap: 28px;
+  }
+
+  .continue-section {
+    margin-left: 0px;
+    margin-top: 20px;
+    margin-bottom: 12px;
+  }
+
+  .continue-grid {
+    gap: 12px;
+  }
+
+  .continue-card {
+    flex: 0 0 190px;
+    width: 190px;
   }
 }

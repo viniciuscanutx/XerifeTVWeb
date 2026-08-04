@@ -185,7 +185,7 @@
   </div>
 
   <app-video-player-modal [open]="playerOpen()" [src]="playerVideoUrl()" [streamFormat]="playerStreamFormat()"
-    [poster]="content.backdrop || content.poster" [title]="playerTitle()" (closed)="closePlayer()" />
+    [poster]="content.backdrop || content.poster" [title]="playerTitle()" [startTime]="savedStartTime()" (timeUpdate)="onTimeUpdate($event)" (closed)="closePlayer()" />
 
 </main>
 }

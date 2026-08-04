@@ -6,6 +6,7 @@ import { ContentApiService } from '../../shared/data/content-api.service';
 import { mapHomeResponse, type HomeMappedData } from '../../shared/data/content-api.mapper';
 import { capitalizeFirstLetter } from '../../utils/utils';
 import { catchError, forkJoin, of } from 'rxjs';
+import { WatchHistoryService, WatchHistoryItem } from '../../shared/services/watch-history.service';
 
 @Component({
   selector: 'app-home',
@@ -16,6 +17,7 @@ import { catchError, forkJoin, of } from 'rxjs';
 export class Home {
   readonly capitalizeFirstLetter = capitalizeFirstLetter;
   private readonly api = inject(ContentApiService);
+  private readonly watchHistory = inject(WatchHistoryService);
 
   readonly heroItem = signal<MediaItem | null>(null);
   readonly trending = signal<MediaItem[]>([]);
@@ -24,6 +26,10 @@ export class Home {
   readonly topRated = signal<MediaItem[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+
+  readonly continueWatchingItems = computed(() => {
+    return this.watchHistory.history().filter((i) => i.progressPercentage > 0 && i.progressPercentage < 95);
+  });
 
   readonly hasData = computed(() => this.heroItem() !== null);
 
@@ -56,5 +62,22 @@ export class Home {
         this.loading.set(false);
       },
     });
+  }
+
+  formatRemainingTime(item: WatchHistoryItem): string {
+    const remainingSeconds = Math.max(0, item.duration - item.currentTime);
+    const minutes = Math.ceil(remainingSeconds / 60);
+    if (minutes >= 60) {
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      return `${h}h ${m}m restantes`;
+    }
+    return `${minutes}m restantes`;
+  }
+
+  removeHistory(event: Event, contentId: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.watchHistory.removeProgress(contentId);
   }
 }

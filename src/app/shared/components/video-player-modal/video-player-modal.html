@@ -17,6 +17,8 @@
             [streamFormat]="streamFormat()"
             [poster]="poster()"
             [autoplay]="true"
+            [startTime]="startTime()"
+            (timeUpdate)="timeUpdate.emit($event)"
           />
         }
       </div>
