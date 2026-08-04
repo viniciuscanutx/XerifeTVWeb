@@ -1,0 +1,90 @@
+<main class="catalog-page">
+  <!-- Desktop Category Filter -->
+  @if (categories().length > 0) {
+    <div class="desktop-categories-filter">
+      <button
+        class="filter-pill"
+        [class.active]="selectedCategory() === 'all'"
+        (click)="selectCategory('all')"
+      >
+        Todas
+      </button>
+
+      @for (cat of categories(); track cat) {
+        <button
+          class="filter-pill"
+          [class.active]="selectedCategory() === cat"
+          (click)="selectCategory(cat)"
+        >
+          {{ capitalizeFirstLetter(cat) }}
+        </button>
+      }
+    </div>
+
+    <!-- Mobile Category Filter Trigger Button -->
+    <div class="mobile-filter-bar">
+      <button class="mobile-filter-trigger" (click)="toggleMobileModal()">
+        <i class="bi bi-funnel-fill"></i>
+        <span>Gênero: <strong>{{ selectedCategory() === 'all' ? 'Todas' : capitalizeFirstLetter(selectedCategory()) }}</strong></span>
+        <i class="bi bi-chevron-down"></i>
+      </button>
+    </div>
+  }
+
+  <!-- Content Grid -->
+  @if (loading()) {
+    <div class="catalog-state">
+      <i class="bi bi-hourglass-split"></i> Carregando séries...
+    </div>
+  }
+  @else if (filteredSeries().length === 0) {
+    <div class="catalog-state">
+      Nenhuma série encontrada nesta categoria.
+    </div>
+  }
+  @else {
+    <div class="catalog-grid">
+      @for (item of filteredSeries(); track item.id) {
+        <div class="grid-item">
+          <app-media-card [item]="item" />
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Mobile Category Filter Bottom Modal -->
+  @if (mobileCategoryModalOpen()) {
+    <div class="category-modal-overlay" (click)="closeMobileModal()">
+      <div class="category-modal-card" (click)="$event.stopPropagation()">
+        <div class="category-modal-header">
+          <h3>Filtrar por Gênero</h3>
+          <button class="category-modal-close" (click)="closeMobileModal()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <div class="category-modal-list">
+          <button
+            class="category-modal-item"
+            [class.active]="selectedCategory() === 'all'"
+            (click)="selectCategory('all')"
+          >
+            <span>Todos os Gêneros</span>
+            @if (selectedCategory() === 'all') { <i class="bi bi-check-lg"></i> }
+          </button>
+
+          @for (cat of categories(); track cat) {
+            <button
+              class="category-modal-item"
+              [class.active]="selectedCategory() === cat"
+              (click)="selectCategory(cat)"
+            >
+              <span>{{ capitalizeFirstLetter(cat) }}</span>
+              @if (selectedCategory() === cat) { <i class="bi bi-check-lg"></i> }
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</main>

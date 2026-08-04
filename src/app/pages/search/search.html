@@ -1,0 +1,84 @@
+<main class="search-page">
+  <!-- Search Header Input & Controls -->
+  <header class="search-header">
+    <div class="search-title-group">
+      <div class="search-icon-badge">
+        <i class="bi bi-search"></i>
+      </div>
+      <div>
+        <h1 class="search-title">Busca</h1>
+        <p class="search-subtitle">Pesquise por títulos, categorias e produções</p>
+      </div>
+    </div>
+
+    <!-- Main Search Input -->
+    <div class="search-input-container">
+      <i class="bi bi-search search-field-icon"></i>
+      <input
+        type="text"
+        class="search-field"
+        placeholder="O que você deseja assistir hoje?"
+        [value]="queryTerm()"
+        (input)="onSearchInput($event)"
+        autofocus
+      />
+    </div>
+
+    <!-- Filter Tabs -->
+    @if (queryTerm() && !loading()) {
+      <div class="search-filters">
+        <button
+          class="filter-tab"
+          [class.active]="filterType() === 'all'"
+          (click)="setFilter('all')"
+        >
+          Todos ({{ allResults().length }})
+        </button>
+
+        <button
+          class="filter-tab"
+          [class.active]="filterType() === 'movie'"
+          (click)="setFilter('movie')"
+        >
+          Filmes ({{ movieResults().length }})
+        </button>
+
+        <button
+          class="filter-tab"
+          [class.active]="filterType() === 'series'"
+          (click)="setFilter('series')"
+        >
+          Séries ({{ seriesResults().length }})
+        </button>
+      </div>
+    }
+  </header>
+
+  <!-- Results Section -->
+  @if (loading()) {
+    <div class="search-state">
+      <i class="bi bi-hourglass-split"></i> Pesquisando títulos...
+    </div>
+  }
+  @else if (!queryTerm()) {
+    <div class="search-state initial-state">
+      <i class="bi bi-search"></i>
+      <p>Digite o nome de um filme ou série para buscar</p>
+    </div>
+  }
+  @else if (filteredResults().length === 0) {
+    <div class="search-state empty-state">
+      <i class="bi bi-emoji-frown"></i>
+      <p>Nenhum resultado encontrado para "{{ queryTerm() }}"</p>
+    </div>
+  }
+  @else {
+    <div class="search-results-grid">
+      @for (item of filteredResults(); track item.id) {
+        <div class="grid-item">
+          <app-media-card [item]="item" />
+        </div>
+      }
+    </div>
+  }
+</main>

@@ -4,12 +4,29 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./pages/home/home').then((m) => m.Home),
-    title: 'Xel If TV - Início',
+    title: 'CHELIFTV - Início',
+  },
+  {
+    path: 'movies',
+    loadComponent: () => import('./pages/movies/movies').then((m) => m.Movies),
+    title: 'CHELIFTV - Filmes',
+  },
+  {
+    path: 'filmes',
+    redirectTo: 'movies',
+    pathMatch: 'full',
+  },
+  {
+    path: 'series',
+    loadComponent: () => import('./pages/series/series').then((m) => m.SeriesPage),
+    title: 'CHELIFTV - Séries',
   },
   {
     path: 'watch/:type/:id',
     loadComponent: () => import('./pages/watch/watch').then((m) => m.Watch),
-    title: 'Xel If TV - Detalhes',
+    title: 'CHELIFTV - Assistir',
   },
   { path: '**', redirectTo: '' },
 ];
+
+
