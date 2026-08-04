@@ -1,5 +1,4 @@
 export const environment = {
-    production: false,
-    apiUrl: 'https://api.seusite.com',
-    tmdbApiKey: 'SUA_CHAVE'
-  };
+  production: true,
+  apiUrl: 'https://chelifetv.onrender.com/',
+};

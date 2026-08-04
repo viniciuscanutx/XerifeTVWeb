@@ -26,6 +26,16 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/watch/watch').then((m) => m.Watch),
     title: 'CHELIFTV - Assistir',
   },
+  {
+    path: 'about',
+    loadComponent: () => import('./pages/about/about').then((m) => m.About),
+    title: 'CHELIFTV - Sobre',
+  },
+  {
+    path: 'sobre',
+    redirectTo: 'about',
+    pathMatch: 'full',
+  },
   { path: '**', redirectTo: '' },
 ];
 

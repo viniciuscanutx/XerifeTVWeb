@@ -17,66 +17,58 @@
         <a class="nav-link" routerLink="/series" routerLinkActive="active">
           <i class="bi bi-tv"></i> Séries
         </a>
+        <a class="nav-link" routerLink="/about" routerLinkActive="active">
+          <i class="bi bi-info-circle"></i> Sobre
+        </a>
       </nav>
     </div>
 
     <div class="nav-controls">
-      <!-- Desktop Search Box & Dropdown -->
       <div class="desktop-search-wrapper">
         <div class="search-box">
           <i class="bi bi-search search-box-icon"></i>
-          <input
-            type="text"
-            class="search-input"
-            placeholder="Buscar filmes, séries..."
-            [value]="searchQuery()"
-            (input)="onSearchInput($event)"
-            (focus)="searchQuery() && dropdownOpen.set(true)"
-          />
+          <input type="text" class="search-input" placeholder="Buscar filmes, séries..." [value]="searchQuery()"
+            (input)="onSearchInput($event)" (focus)="searchQuery() && dropdownOpen.set(true)" />
           @if (searchQuery()) {
-            <button class="search-clear-btn" type="button" (click)="clearSearch()">
-              <i class="bi bi-x"></i>
-            </button>
+          <button class="search-clear-btn" type="button" (click)="clearSearch()">
+            <i class="bi bi-x"></i>
+          </button>
           }
         </div>
 
-        <!-- Live Search Dropdown -->
+
         @if (dropdownOpen()) {
-          <div class="desktop-search-dropdown">
-            @if (isSearching()) {
-              <div class="search-dropdown-state">
-                <i class="bi bi-hourglass-split"></i> Buscando títulos...
+        <div class="desktop-search-dropdown">
+          @if (isSearching()) {
+          <div class="search-dropdown-state">
+            <i class="bi bi-hourglass-split"></i> Buscando títulos...
+          </div>
+          }
+          @else if (searchResults().length === 0) {
+          <div class="search-dropdown-state">
+            Nenhum resultado encontrado para "{{ searchQuery() }}"
+          </div>
+          }
+          @else {
+          <div class="search-dropdown-results">
+            @for (item of searchResults(); track item.id) {
+            <a class="search-result-item" [routerLink]="['/watch', item.type, item.id]" (click)="clearSearch()">
+              <img class="result-thumb" [src]="item.poster" [alt]="item.title" />
+              <div class="result-info">
+                <span class="result-title">{{ item.title }}</span>
+                <div class="result-meta">
+                  <span class="result-badge">{{ item.type === 'movie' ? 'Filme' : 'Série' }}</span>
+                  @if (item.year) { <span>{{ item.year }}</span> }
+                  @if (item.rating) {
+                  <span class="result-rating"><i class="bi bi-star-fill"></i> {{ item.rating.toFixed(1) }}</span>
+                  }
+                </div>
               </div>
-            }
-            @else if (searchResults().length === 0) {
-              <div class="search-dropdown-state">
-                Nenhum resultado encontrado para "{{ searchQuery() }}"
-              </div>
-            }
-            @else {
-              <div class="search-dropdown-results">
-                @for (item of searchResults(); track item.id) {
-                  <a
-                    class="search-result-item"
-                    [routerLink]="['/watch', item.type, item.id]"
-                    (click)="clearSearch()"
-                  >
-                    <img class="result-thumb" [src]="item.poster" [alt]="item.title" />
-                    <div class="result-info">
-                      <span class="result-title">{{ item.title }}</span>
-                      <div class="result-meta">
-                        <span class="result-badge">{{ item.type === 'movie' ? 'Filme' : 'Série' }}</span>
-                        @if (item.year) { <span>{{ item.year }}</span> }
-                        @if (item.rating) {
-                          <span class="result-rating"><i class="bi bi-star-fill"></i> {{ item.rating.toFixed(1) }}</span>
-                        }
-                      </div>
-                    </div>
-                  </a>
-                }
-              </div>
+            </a>
             }
           </div>
+          }
+        </div>
         }
       </div>
 
@@ -121,71 +113,68 @@
       </div>
       <span class="tab-label">Buscar</span>
     </button>
+
+    <a class="tab-item" routerLink="/about" routerLinkActive="active">
+      <div class="tab-icon-wrap">
+        <i class="bi bi-info-circle-fill tab-icon-active"></i>
+        <i class="bi bi-info-circle tab-icon-inactive"></i>
+      </div>
+      <span class="tab-label">Sobre</span>
+    </a>
+
   </div>
 </nav>
 
-<!-- Mobile Search Modal Overlay with Live Results -->
 @if (searchOpen()) {
-  <div class="mobile-search-overlay" (click)="closeSearch()">
-    <div class="mobile-search-card" (click)="$event.stopPropagation()">
-      <div class="mobile-search-header">
-        <div class="mobile-search-input-wrap">
-          <i class="bi bi-search"></i>
-          <input
-            type="text"
-            class="mobile-search-input"
-            placeholder="Buscar filmes, séries, gêneros..."
-            [value]="searchQuery()"
-            (input)="onSearchInput($event)"
-            autofocus
-          />
-          @if (searchQuery()) {
-            <button class="mobile-clear-btn" type="button" (click)="clearSearch()">
-              <i class="bi bi-x"></i>
-            </button>
-          }
-        </div>
-        <button class="mobile-search-cancel" type="button" (click)="closeSearch()">
-          Cancelar
+<div class="mobile-search-overlay" (click)="closeSearch()">
+  <div class="mobile-search-card" (click)="$event.stopPropagation()">
+    <div class="mobile-search-header">
+      <div class="mobile-search-input-wrap">
+        <i class="bi bi-search"></i>
+        <input type="text" class="mobile-search-input" placeholder="Buscar filmes, séries, gêneros..."
+          [value]="searchQuery()" (input)="onSearchInput($event)" autofocus />
+        @if (searchQuery()) {
+        <button class="mobile-clear-btn" type="button" (click)="clearSearch()">
+          <i class="bi bi-x"></i>
         </button>
+        }
       </div>
+      <button class="mobile-search-cancel" type="button" (click)="closeSearch()">
+        Cancelar
+      </button>
+    </div>
 
-      <!-- Mobile Search Results Container -->
-      <div class="mobile-search-results-body">
-        @if (isSearching()) {
-          <div class="mobile-search-state">
-            <i class="bi bi-hourglass-split"></i> Buscando...
+    <div class="mobile-search-results-body">
+      @if (isSearching()) {
+      <div class="mobile-search-state">
+        <i class="bi bi-hourglass-split"></i> Buscando...
+      </div>
+      }
+      @else if (searchQuery() && searchResults().length === 0) {
+      <div class="mobile-search-state">
+        Nenhum resultado encontrado para "{{ searchQuery() }}"
+      </div>
+      }
+      @else if (searchResults().length > 0) {
+      <div class="mobile-results-list">
+        @for (item of searchResults(); track item.id) {
+        <a class="mobile-result-item" [routerLink]="['/watch', item.type, item.id]" (click)="closeSearch()">
+          <img class="mobile-result-thumb" [src]="item.poster" [alt]="item.title" />
+          <div class="mobile-result-info">
+            <h4 class="mobile-result-title">{{ item.title }}</h4>
+            <div class="mobile-result-meta">
+              <span class="result-badge">{{ item.type === 'movie' ? 'Filme' : 'Série' }}</span>
+              @if (item.year) { <span>{{ item.year }}</span> }
+              @if (item.rating) {
+              <span class="result-rating"><i class="bi bi-star-fill"></i> {{ item.rating.toFixed(1) }}</span>
+              }
+            </div>
           </div>
-        }
-        @else if (searchQuery() && searchResults().length === 0) {
-          <div class="mobile-search-state">
-            Nenhum resultado encontrado para "{{ searchQuery() }}"
-          </div>
-        }
-        @else if (searchResults().length > 0) {
-          <div class="mobile-results-list">
-            @for (item of searchResults(); track item.id) {
-              <a
-                class="mobile-result-item"
-                [routerLink]="['/watch', item.type, item.id]"
-                (click)="closeSearch()"
-              >
-                <img class="mobile-result-thumb" [src]="item.poster" [alt]="item.title" />
-                <div class="mobile-result-info">
-                  <h4 class="mobile-result-title">{{ item.title }}</h4>
-                  <div class="mobile-result-meta">
-                    <span class="result-badge">{{ item.type === 'movie' ? 'Filme' : 'Série' }}</span>
-                    @if (item.year) { <span>{{ item.year }}</span> }
-                    @if (item.rating) {
-                      <span class="result-rating"><i class="bi bi-star-fill"></i> {{ item.rating.toFixed(1) }}</span>
-                    }
-                  </div>
-                </div>
-              </a>
-            }
-          </div>
+        </a>
         }
       </div>
+      }
     </div>
   </div>
+</div>
 }

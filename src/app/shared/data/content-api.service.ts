@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { environment } from '../../environments/environment.development';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import type {
@@ -16,9 +16,9 @@ import type {
 
 @Injectable({ providedIn: 'root' })
 export class ContentApiService {
-  private readonly base = `${environment.apiUrl.replace(/\/?$/, '/') }Api/Content/v2`;
+  private readonly base = `${environment.apiUrl.replace(/\/?$/, '/')}Api/Content/v2`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   resolveMediaUrl(url?: string | null): string | null {
     if (!url) return null;

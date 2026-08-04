@@ -83,7 +83,8 @@ body {
   box-shadow: 0 0 16px rgba(155, 104, 255, 0.3);
 }
 
-/* Hide mobile tab bar when video player modal is open */
-body.vpm-open .mobile-tab-bar {
+/* Hide mobile tab bar & footer when video player modal is open */
+body.vpm-open .mobile-tab-bar,
+body.vpm-open app-footer {
   display: none !important;
 }
