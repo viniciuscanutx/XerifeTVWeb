@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, catchError } from 'rxjs';
 import type {
   MovieResponse,
   SeriesSummaryResponse,
@@ -12,6 +12,8 @@ import type {
   EpisodesResult,
   SearchResult,
   ResolvedVideoResponse,
+  ChannelResponse,
+  ChannelCategoryGroup,
 } from './content-api.types';
 
 @Injectable({ providedIn: 'root' })
@@ -29,6 +31,14 @@ export class ContentApiService {
     const url = this.resolveMediaUrl(resolverUrl);
     if (!url) throw new Error('A URL de reprodução não foi informada.');
     return this.http.get<ResolvedVideoResponse>(url);
+  }
+
+  getChannels(limit = 200): Observable<any> {
+    const v1Base = `${environment.apiUrl.replace(/\/?$/, '/')}Api/Content/v2/Channels`;
+    let params = new HttpParams().set('limit', limit);
+
+    return this.http.get<any>(v1Base, { params });
+
   }
 
   getHome(): Observable<HomeResponse> {

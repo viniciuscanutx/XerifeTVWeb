@@ -17,6 +17,9 @@
         <a class="nav-link" routerLink="/series" routerLinkActive="active">
           <i class="bi bi-tv"></i> Séries
         </a>
+        <a class="nav-link" routerLink="/channels" routerLinkActive="active">
+          <i class="bi bi-broadcast"></i> Canais
+        </a>
         <a class="nav-link" routerLink="/about" routerLinkActive="active">
           <i class="bi bi-info-circle"></i> Sobre
         </a>
@@ -104,6 +107,14 @@
         <i class="bi bi-tv tab-icon-inactive"></i>
       </div>
       <span class="tab-label">Séries</span>
+    </a>
+
+    <a class="tab-item" routerLink="/channels" routerLinkActive="active">
+      <div class="tab-icon-wrap">
+        <i class="bi bi-broadcast-pin tab-icon-active"></i>
+        <i class="bi bi-broadcast tab-icon-inactive"></i>
+      </div>
+      <span class="tab-label">Canais</span>
     </a>
 
     <button class="tab-item" type="button" (click)="toggleSearch()" [class.active]="searchOpen()">

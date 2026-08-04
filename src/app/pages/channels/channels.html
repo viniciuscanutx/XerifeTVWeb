@@ -1,0 +1,96 @@
+<main class="channels-page animate-page-enter">
+
+  <div class="categories-bar">
+    <div class="categories-scroll">
+      @for (cat of categoriesList(); track cat) {
+      <button type="button" class="category-pill" [class.active]="selectedCategory() === cat"
+        (click)="selectCategory(cat)">
+        {{ capitalizeFirstLetter(cat) }}
+      </button>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+  <div class="loading-container">
+    <div class="spinner-border text-purple" role="status">
+      <span class="visually-hidden">Carregando canais...</span>
+    </div>
+    <p class="mt-3 text-muted">Carregando a grade de canais ao vivo...</p>
+  </div>
+  } @else if (error()) {
+  <div class="error-container">
+    <i class="bi bi-exclamation-triangle-fill error-icon"></i>
+    <h3>Ocorreu um erro</h3>
+    <p>{{ error() }}</p>
+    <button class="btn-retry" (click)="loadChannels()">
+      <i class="bi bi-arrow-clockwise me-1"></i> Tentar Novamente
+    </button>
+  </div>
+  } @else if (totalChannelsCount() === 0) {
+  <div class="empty-container">
+    <i class="bi bi-tv-slash empty-icon"></i>
+    <h3>Nenhum canal encontrado</h3>
+    <p>Não encontramos canais com os filtros ou termo pesquisado.</p>
+    <button class="btn-reset" (click)="searchTerm.set(''); selectedCategory.set('todos')">
+      Limpar Filtros
+    </button>
+  </div>
+  } @else {
+  <div class="groups-container">
+    @for (group of filteredGroups(); track group.category) {
+    <section class="channel-group">
+      <div class="group-header">
+        <h2 class="group-title">
+          <i class="bi bi-tv me-2 text-purple"></i> {{ capitalizeFirstLetter(group.category) }}
+        </h2>
+        <span class="group-count">{{ group.items.length }} {{ group.items.length === 1 ? 'canal' : 'canais' }}</span>
+      </div>
+
+      <div class="channels-grid">
+        @for (channel of group.items; track channel.id || channel.title) {
+        <div class="channel-card" (click)="playChannel(channel)" tabindex="0" role="button">
+          <div class="channel-card__logo-wrap">
+            @if (channel.logoUrl || channel.logoURL || channel.posterURL) {
+            <img [src]="channel.logoUrl || channel.logoURL || channel.posterURL" [alt]="channel.title"
+              class="channel-logo" loading="lazy" />
+            } @else {
+            <div class="channel-logo-placeholder">
+              <i class="bi bi-tv"></i>
+            </div>
+            }
+
+            <div class="live-tag">
+              <span class="live-pulse"></span> AO VIVO
+            </div>
+
+            <div class="play-overlay">
+              <div class="play-circle">
+                @if (resolvingStream() && activeChannel()?.id === channel.id) {
+                <div class="spinner-border spinner-border-sm text-white" role="status"></div>
+                } @else {
+                <i class="bi bi-play-fill"></i>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="channel-card__info">
+            <h3 class="channel-title" [title]="channel.title">{{ channel.title }}</h3>
+            @if (channel.categories && channel.categories.length > 0) {
+            <span class="channel-category">{{ capitalizeFirstLetter(channel.categories[0]) }}</span>
+            }
+          </div>
+        </div>
+        }
+      </div>
+    </section>
+    }
+  </div>
+  }
+</main>
+
+<app-video-player-modal [open]="playerOpen()" [src]="streamUrl()" [streamFormat]="streamFormat()"
+  [poster]="activeChannel()?.logoUrl || activeChannel()?.logoURL || null"
+  [title]="activeChannel()?.title ? activeChannel()!.title + ' (AO VIVO)' : 'Canal Ao Vivo'" [startTime]="0"
+  [hasNextEpisode]="false" (closed)="closePlayer()" />

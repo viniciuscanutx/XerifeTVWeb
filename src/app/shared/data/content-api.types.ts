@@ -79,3 +79,24 @@ export interface ResolvedVideoResponse {
   url: string;
   streamFormat: string;
 }
+
+export interface ChannelResponse {
+  id: string;
+  title: string;
+  categories: string[];
+  logoUrl?: string;
+  logoURL?: string;
+  bannerURL?: string;
+  posterURL?: string;
+  video?: {
+    url?: string;
+    streamFormat?: string;
+  };
+  urlResolverPath?: string;
+  videoResolverURL?: string;
+}
+
+export interface ChannelCategoryGroup {
+  category: string;
+  items: ChannelResponse[];
+}

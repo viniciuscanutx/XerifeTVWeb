@@ -22,6 +22,16 @@ export const routes: Routes = [
     title: 'CHELIFTV - Séries',
   },
   {
+    path: 'channels',
+    loadComponent: () => import('./pages/channels/channels').then((m) => m.ChannelsPage),
+    title: 'CHELIFTV - Canais ao Vivo',
+  },
+  {
+    path: 'canais',
+    redirectTo: 'channels',
+    pathMatch: 'full',
+  },
+  {
     path: 'watch/:type/:id',
     loadComponent: () => import('./pages/watch/watch').then((m) => m.Watch),
     title: 'CHELIFTV - Assistir',
