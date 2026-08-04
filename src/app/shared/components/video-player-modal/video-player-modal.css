@@ -5,11 +5,11 @@
 .vpm {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  z-index: 999999;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 48px 16px 24px 16px;
+  align-items: center;
+  padding: 24px 16px;
   animation: vpm-fade-in 220ms ease;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -30,7 +30,7 @@
   position: relative;
   width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: auto;
   background: #0a0a0c;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.1);

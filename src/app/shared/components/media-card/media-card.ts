@@ -11,6 +11,7 @@ export interface MediaItem {
   backdrop?: string;
   overview: string;
   genres: string[];
+  highQuality?: boolean;
 }
 
 @Component({

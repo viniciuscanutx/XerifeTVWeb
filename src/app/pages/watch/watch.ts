@@ -19,6 +19,7 @@ export interface EpisodeItem {
   alternativeVideoResolverUrl?: string | null;
   videoUrl?: string | null;
   streamFormat?: string;
+  highQuality?: boolean;
 }
 
 export interface WatchItem extends MediaItem {
@@ -29,6 +30,7 @@ export interface WatchItem extends MediaItem {
   alternativeVideoResolverUrl?: string | null;
   streamFormat?: string;
   totalSeasons?: number;
+  highQuality?: boolean;
 }
 
 interface ParentalBadge {
@@ -101,6 +103,16 @@ export class Watch {
     return this.episodes().slice(start, start + this.episodesPerPage);
   });
 
+  readonly hasDubbedVersion = computed(() => {
+    const ep = this.activeEpisode();
+    const item = this.item();
+    if (item?.type === 'series') {
+      if (ep) return !!ep.videoResolverUrl;
+      return this.episodes().some((e) => !!e.videoResolverUrl);
+    }
+    return !!item?.videoResolverUrl;
+  });
+
   readonly hasSubtitledVersion = computed(() => {
     const ep = this.activeEpisode();
     const item = this.item();
@@ -109,6 +121,20 @@ export class Watch {
       return this.episodes().some((e) => !!e.alternativeVideoResolverUrl);
     }
     return !!item?.alternativeVideoResolverUrl;
+  });
+
+  readonly hasBothAudioVersions = computed(() => {
+    return this.hasDubbedVersion() && this.hasSubtitledVersion();
+  });
+
+  readonly isHighQuality = computed(() => {
+    const ep = this.activeEpisode();
+    const item = this.item();
+    if (item?.type === 'series') {
+      if (ep) return !!ep.highQuality;
+      return !!item?.highQuality || this.episodes().some((e) => !!e.highQuality);
+    }
+    return !!item?.highQuality;
   });
 
   readonly playerTitle = computed(() => {
@@ -159,6 +185,8 @@ export class Watch {
   }
 
   setAudio(mode: 'dub' | 'sub'): void {
+    if (mode === 'sub' && !this.hasSubtitledVersion()) return;
+    if (mode === 'dub' && !this.hasDubbedVersion()) return;
     if (this.selectedAudio() === mode) return;
     this.selectedAudio.set(mode);
 
@@ -315,6 +343,7 @@ export class Watch {
               ...seriesToMediaItem(series),
               parentalRating: series.parentalRating ? String(series.parentalRating) : undefined,
               totalSeasons: Number(series.totalSeasons || series.numberSeasons) || 1,
+              highQuality: series.highQuality ?? series.HighQuality ?? false,
             })))
           : this.api.getMovieById(id).pipe(map((movie: any) => ({
               ...toMediaItem(movie),
@@ -322,6 +351,7 @@ export class Watch {
               parentalRating: movie.parentalRating ? String(movie.parentalRating) : undefined,
               videoResolverUrl: movie.videoResolverURL || movie.urlResolverPath,
               alternativeVideoResolverUrl: movie.alternativeVideoResolverURL || movie.alternativeVideoResolverUrl,
+              highQuality: movie.highQuality ?? movie.HighQuality ?? false,
             })));
       }),
       catchError(() => of(null)),
@@ -419,6 +449,7 @@ export class Watch {
         alternativeVideoResolverUrl: ep.alternativeVideoResolverURL || ep.alternativeVideoResolverUrl,
         videoUrl: ep.video?.url,
         streamFormat: ep.video?.streamFormat || 'mp4',
+        highQuality: ep.highQuality ?? ep.HighQuality ?? false,
       }));
 
       this.episodes.set(list);

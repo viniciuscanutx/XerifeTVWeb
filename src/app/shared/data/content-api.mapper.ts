@@ -13,6 +13,7 @@ export function toMediaItem(movie: MovieResponse): MediaItem {
     backdrop: movie.bannerURL ?? '',
     overview: movie.synopsis ?? '',
     genres: Array.isArray(movie.categories) ? movie.categories : [],
+    highQuality: (movie as any).highQuality ?? (movie as any).HighQuality ?? false,
   };
 }
 
@@ -27,6 +28,7 @@ export function seriesToMediaItem(series: SeriesSummaryResponse): MediaItem {
     backdrop: series.bannerURL ?? '',
     overview: series.synopsis ?? '',
     genres: Array.isArray(series.categories) ? series.categories : [],
+    highQuality: (series as any).highQuality ?? (series as any).HighQuality ?? false,
   };
 }
 

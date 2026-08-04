@@ -14,6 +14,7 @@ export interface MovieResponse {
   alternativeVideoResolverURL?: string;
   subtitleURL?: string;
   trailerVideoYoutubeId?: string;
+  highQuality?: boolean;
 }
 
 export interface SeriesSummaryResponse {
@@ -28,6 +29,7 @@ export interface SeriesSummaryResponse {
   synopsis: string;
   totalSeasons: number;
   hasSubtitles: boolean;
+  highQuality?: boolean;
 }
 
 export interface EpisodeResponse {
@@ -39,6 +41,7 @@ export interface EpisodeResponse {
   subtitleURL: string;
   videoResolverURL: string;
   alternativeVideoResolverURL?: string;
+  highQuality?: boolean;
 }
 
 export interface HomeResponse {

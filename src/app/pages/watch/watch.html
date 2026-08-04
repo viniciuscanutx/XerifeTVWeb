@@ -28,11 +28,15 @@
 
       @if (content.duration) { <span class="tag">{{ content.duration }}</span> }
 
+      @if (isHighQuality()) {
+        <span class="tag tag-4k">4K</span>
+      }
+
     </div>
 
     <h1 class="main-title">{{ content.title }}</h1>
 
-    @if (hasSubtitledVersion()) {
+    @if (hasBothAudioVersions()) {
     <div class="audio-selector-container">
       <div class="audio-selector">
         <button
@@ -51,6 +55,18 @@
         >
           <i class="bi bi-chat-square-text-fill"></i> Legendado
         </button>
+      </div>
+    </div>
+    } @else if (hasDubbedVersion()) {
+    <div class="audio-selector-container">
+      <div class="audio-badge-single">
+        <i class="bi bi-translate"></i> Dublado
+      </div>
+    </div>
+    } @else if (hasSubtitledVersion()) {
+    <div class="audio-selector-container">
+      <div class="audio-badge-single">
+        <i class="bi bi-chat-square-text-fill"></i> Legendado
       </div>
     </div>
     }
@@ -108,6 +124,9 @@
             <div class="episode-header">
               <span class="episode-number">E{{ ep.number ?? ((episodePage() - 1) * episodesPerPage + idx + 1) }}</span>
               <h4 class="episode-title">{{ ep.title }}</h4>
+              @if (ep.highQuality) {
+                <span class="badge-4k">4K</span>
+              }
             </div>
             @if (ep.duration) {
             <span class="episode-duration"><i class="bi bi-clock"></i> {{ ep.duration }}</span>
@@ -184,8 +203,9 @@
 
   </div>
 
-  <app-video-player-modal [open]="playerOpen()" [src]="playerVideoUrl()" [streamFormat]="playerStreamFormat()"
-    [poster]="content.backdrop || content.poster" [title]="playerTitle()" [startTime]="savedStartTime()" (timeUpdate)="onTimeUpdate($event)" (closed)="closePlayer()" />
-
 </main>
+
+<app-video-player-modal [open]="playerOpen()" [src]="playerVideoUrl()" [streamFormat]="playerStreamFormat()"
+  [poster]="content.backdrop || content.poster" [title]="playerTitle()" [startTime]="savedStartTime()" (timeUpdate)="onTimeUpdate($event)" (closed)="closePlayer()" />
+
 }
