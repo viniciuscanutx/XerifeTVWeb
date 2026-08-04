@@ -45,7 +45,9 @@ export class VideoPlayer implements OnDestroy {
   readonly errorMessage = signal<string | null>(null);
   readonly showControls = signal(true);
   readonly isMuted = signal(false);
-  readonly isFullscreen = signal(false);
+  readonly isFullscreenNative = signal(false);
+  readonly isFullscreenCss = signal(false);
+  readonly isFullscreen = computed(() => this.isFullscreenNative() || this.isFullscreenCss());
   readonly currentTime = signal(0);
   readonly duration = signal(0);
   readonly buffered = signal(0);
@@ -61,6 +63,12 @@ export class VideoPlayer implements OnDestroy {
   private unbindHandlers: (() => void) | null = null;
 
   private readonly rates = [0.5, 1, 1.5, 2];
+  private readonly fullscreenEvents = [
+    'fullscreenchange',
+    'webkitfullscreenchange',
+    'mozfullscreenchange',
+    'MSFullscreenChange',
+  ];
 
   readonly progress = computed(() => {
     const d = this.duration();
@@ -76,7 +84,9 @@ export class VideoPlayer implements OnDestroy {
   readonly durationLabel = computed(() => this.formatTime(this.duration()));
 
   constructor() {
-    document.addEventListener('fullscreenchange', this.onFullscreenChange);
+    this.fullscreenEvents.forEach((evt) =>
+      document.addEventListener(evt, this.onFullscreenChange)
+    );
     effect(() => {
       const url = this.src();
       this.loadVideo(url);
@@ -85,7 +95,10 @@ export class VideoPlayer implements OnDestroy {
 
   ngOnDestroy(): void {
     this.cleanup();
-    document.removeEventListener('fullscreenchange', this.onFullscreenChange);
+    this.exitCssFullscreen();
+    this.fullscreenEvents.forEach((evt) =>
+      document.removeEventListener(evt, this.onFullscreenChange)
+    );
   }
 
   private cleanup(): void {
@@ -132,6 +145,12 @@ export class VideoPlayer implements OnDestroy {
       this.currentTime.set(video.currentTime);
       this.updateBuffered(video);
     };
+    const onWebkitBeginFS = () => this.zone.run(() => this.isFullscreenNative.set(true));
+    const onWebkitEndFS = () =>
+      this.zone.run(() => {
+        this.isFullscreenNative.set(false);
+        this.unlockOrientation();
+      });
 
     video.addEventListener('play', onPlay);
     video.addEventListener('pause', onPause);
@@ -144,6 +163,8 @@ export class VideoPlayer implements OnDestroy {
     video.addEventListener('progress', onProgress);
     video.addEventListener('durationchange', onDurationChange);
     video.addEventListener('timeupdate', onTimeUpdate);
+    video.addEventListener('webkitbeginfullscreen', onWebkitBeginFS);
+    video.addEventListener('webkitendfullscreen', onWebkitEndFS);
 
     this.unbindHandlers = () => {
       video.removeEventListener('play', onPlay);
@@ -157,6 +178,8 @@ export class VideoPlayer implements OnDestroy {
       video.removeEventListener('progress', onProgress);
       video.removeEventListener('durationchange', onDurationChange);
       video.removeEventListener('timeupdate', onTimeUpdate);
+      video.removeEventListener('webkitbeginfullscreen', onWebkitBeginFS);
+      video.removeEventListener('webkitendfullscreen', onWebkitEndFS);
     };
   }
 
@@ -319,19 +342,125 @@ export class VideoPlayer implements OnDestroy {
     this.showSettings.set(false);
   }
 
+  private getNativeFullscreenElement(): Element | null {
+    const doc = document as any;
+    return (
+      doc.fullscreenElement ||
+      doc.webkitFullscreenElement ||
+      doc.mozFullScreenElement ||
+      doc.msFullscreenElement ||
+      null
+    );
+  }
+
   async toggleFullscreen(): Promise<void> {
-    const container = this.videoRef()?.nativeElement.parentElement;
-    if (!container) return;
-    if (!document.fullscreenElement) {
-      await container.requestFullscreen?.().catch(() => {});
+    const container = this.videoRef()?.nativeElement.parentElement as any;
+    const video = this.videoRef()?.nativeElement as any;
+    if (!container || !video) return;
+
+    const isCurrentlyFs =
+      !!this.getNativeFullscreenElement() ||
+      !!video.webkitDisplayingFullscreen ||
+      this.isFullscreenCss();
+
+    if (isCurrentlyFs) {
+      if (this.isFullscreenCss()) {
+        this.exitCssFullscreen();
+      }
+
+      const doc = document as any;
+      if (doc.fullscreenElement && doc.exitFullscreen) {
+        await doc.exitFullscreen().catch(() => {});
+      } else if (doc.webkitFullscreenElement && doc.webkitExitFullscreen) {
+        await doc.webkitExitFullscreen().catch(() => {});
+      } else if (doc.mozFullScreenElement && doc.mozCancelFullScreen) {
+        await doc.mozCancelFullScreen().catch(() => {});
+      } else if (doc.msFullscreenElement && doc.msExitFullscreen) {
+        await doc.msExitFullscreen().catch(() => {});
+      } else if (video.webkitDisplayingFullscreen && video.webkitExitFullscreen) {
+        video.webkitExitFullscreen();
+      }
+      this.unlockOrientation();
     } else {
-      await document.exitFullscreen?.().catch(() => {});
+      let enteredNative = false;
+
+      try {
+        if (container.requestFullscreen) {
+          await container.requestFullscreen();
+          enteredNative = true;
+        } else if (container.webkitRequestFullscreen) {
+          await container.webkitRequestFullscreen();
+          enteredNative = true;
+        } else if (container.mozRequestFullScreen) {
+          await container.mozRequestFullScreen();
+          enteredNative = true;
+        } else if (container.msRequestFullscreen) {
+          await container.msRequestFullscreen();
+          enteredNative = true;
+        }
+      } catch (err) {
+        console.warn('Native requestFullscreen container failed:', err);
+      }
+
+      if (!enteredNative && video.webkitEnterFullscreen) {
+        try {
+          video.webkitEnterFullscreen();
+          enteredNative = true;
+        } catch (err) {
+          console.warn('video.webkitEnterFullscreen failed:', err);
+        }
+      }
+
+      if (!enteredNative) {
+        this.enterCssFullscreen();
+      }
+
+      this.lockOrientation();
     }
   }
 
   private onFullscreenChange = () => {
-    this.zone.run(() => this.isFullscreen.set(!!document.fullscreenElement));
+    this.zone.run(() => {
+      const isFs = !!this.getNativeFullscreenElement();
+      this.isFullscreenNative.set(isFs);
+      if (!isFs && this.isFullscreenCss()) {
+        this.exitCssFullscreen();
+      }
+      if (!isFs) {
+        this.unlockOrientation();
+      }
+    });
   };
+
+  private enterCssFullscreen(): void {
+    this.isFullscreenCss.set(true);
+    try {
+      document.body.style.overflow = 'hidden';
+    } catch {}
+  }
+
+  private exitCssFullscreen(): void {
+    this.isFullscreenCss.set(false);
+    try {
+      document.body.style.overflow = '';
+    } catch {}
+  }
+
+  private lockOrientation(): void {
+    try {
+      if (screen.orientation && 'lock' in screen.orientation) {
+        (screen.orientation as any).lock('landscape').catch(() => {});
+      }
+    } catch {}
+  }
+
+  private unlockOrientation(): void {
+    try {
+      if (screen.orientation && 'unlock' in screen.orientation) {
+        screen.orientation.unlock();
+      }
+    } catch {}
+  }
 
   onKeydown(event: KeyboardEvent): void {
     const video = this.videoRef()?.nativeElement;

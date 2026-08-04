@@ -29,7 +29,6 @@
   display: block;
 }
 
-.vp--fullscreen .vp__video { object-fit: cover; }
 
 /* Big play */
 .vp__big-play {
@@ -278,7 +277,18 @@
 .vp__menu-item:hover { background: rgba(255,255,255,.12); }
 .vp__menu-item.is-active { background: var(--vp-accent); }
 
+.vp--fullscreen .vp__video { object-fit: contain; }
+
 /* Fullscreen tweaks */
+.vp--fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  z-index: 999999 !important;
+  background: #000 !important;
+}
 .vp--fullscreen .vp__controls {
   padding: .8rem 1.5rem 1rem;
   background: linear-gradient(to top, var(--vp-bg-strong) 50%, transparent);
