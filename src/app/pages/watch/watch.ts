@@ -15,6 +15,7 @@ export interface EpisodeItem {
   bannerUrl?: string;
   duration?: string;
   videoResolverUrl?: string | null;
+  alternativeVideoResolverUrl?: string | null;
   videoUrl?: string | null;
   streamFormat?: string;
 }
@@ -24,6 +25,7 @@ export interface WatchItem extends MediaItem {
   parentalRating?: string;
   videoUrl?: string | null;
   videoResolverUrl?: string | null;
+  alternativeVideoResolverUrl?: string | null;
   streamFormat?: string;
   totalSeasons?: number;
 }
@@ -63,6 +65,9 @@ export class Watch {
   readonly resolvingVideo = signal(false);
   readonly playerOpen = signal(false);
 
+  // Audio selection signal ('dub' = Dublado, 'sub' = Legendado)
+  readonly selectedAudio = signal<'dub' | 'sub'>('dub');
+
   // Series & Episode signals
   readonly selectedSeason = signal<number>(1);
   readonly episodes = signal<EpisodeItem[]>([]);
@@ -91,6 +96,16 @@ export class Watch {
     const page = this.episodePage();
     const start = (page - 1) * this.episodesPerPage;
     return this.episodes().slice(start, start + this.episodesPerPage);
+  });
+
+  readonly hasSubtitledVersion = computed(() => {
+    const ep = this.activeEpisode();
+    const item = this.item();
+    if (item?.type === 'series') {
+      if (ep) return !!ep.alternativeVideoResolverUrl;
+      return this.episodes().some((e) => !!e.alternativeVideoResolverUrl);
+    }
+    return !!item?.alternativeVideoResolverUrl;
   });
 
   readonly playerTitle = computed(() => {
@@ -132,17 +147,58 @@ export class Watch {
     return null;
   });
 
+  private getActiveResolverUrl(target: { videoResolverUrl?: string | null; alternativeVideoResolverUrl?: string | null } | null): string | null {
+    if (!target) return null;
+    if (this.selectedAudio() === 'sub' && target.alternativeVideoResolverUrl) {
+      return target.alternativeVideoResolverUrl;
+    }
+    return target.videoResolverUrl || null;
+  }
+
+  setAudio(mode: 'dub' | 'sub'): void {
+    if (this.selectedAudio() === mode) return;
+    this.selectedAudio.set(mode);
+
+    const item = this.item();
+    if (item?.type === 'series') {
+      const ep = this.activeEpisode() || this.episodes()[0];
+      if (ep) {
+        this.loadEpisodeVideo(ep);
+      }
+    } else if (item) {
+      const resolverUrl = this.getActiveResolverUrl(item);
+      if (resolverUrl) {
+        this.loadVideo(resolverUrl);
+      }
+    }
+  }
+
   openPlayer(): void {
     const item = this.item();
     if (item?.type === 'series') {
       const epList = this.episodes();
-      if (epList.length > 0) {
-        this.playEpisode(epList[0]);
+      const ep = this.activeEpisode() || epList[0];
+      if (ep) {
+        this.playEpisode(ep);
+      } else {
+        this.playerOpen.set(true);
+      }
+    } else if (item) {
+      this.activeEpisode.set(null);
+      const resolverUrl = this.getActiveResolverUrl(item);
+      if (resolverUrl) {
+        this.resolvingVideo.set(true);
+        this.api.resolveVideoUrl(resolverUrl).pipe(catchError(() => of(null))).subscribe((video) => {
+          this.resolvingVideo.set(false);
+          const url = video?.url || resolverUrl;
+          const format = video?.streamFormat || (url?.includes('.m3u8') ? 'hls' : 'mp4');
+          this.item.update((curr) => curr ? { ...curr, videoUrl: url, streamFormat: format } : curr);
+          this.playerOpen.set(true);
+        });
       } else {
         this.playerOpen.set(true);
       }
     } else {
-      this.activeEpisode.set(null);
       this.playerOpen.set(true);
     }
   }
@@ -173,20 +229,28 @@ export class Watch {
 
   playEpisode(ep: EpisodeItem): void {
     this.activeEpisode.set(ep);
-    const resolverUrl = ep.videoResolverUrl;
-    if (resolverUrl && !ep.videoUrl) {
-      this.resolvingVideo.set(true);
-      this.api.resolveVideoUrl(resolverUrl).pipe(catchError(() => of(null))).subscribe((video) => {
-        this.resolvingVideo.set(false);
-        const url = video?.url || resolverUrl;
-        const format = video?.streamFormat || (url?.includes('.m3u8') ? 'hls' : 'mp4');
-        const updatedEp = { ...ep, videoUrl: url, streamFormat: format };
-        this.activeEpisode.set(updatedEp);
-        this.playerOpen.set(true);
-      });
-    } else {
-      this.playerOpen.set(true);
+    this.loadEpisodeVideo(ep, true);
+  }
+
+  private loadEpisodeVideo(ep: EpisodeItem, openPlayerWhenDone = false): void {
+    const resolverUrl = this.getActiveResolverUrl(ep);
+    if (!resolverUrl) {
+      if (openPlayerWhenDone) this.playerOpen.set(true);
+      return;
     }
+
+    this.resolvingVideo.set(true);
+    this.api.resolveVideoUrl(resolverUrl).pipe(catchError(() => of(null))).subscribe((video) => {
+      this.resolvingVideo.set(false);
+      const url = video?.url || resolverUrl;
+      const format = video?.streamFormat || (url?.includes('.m3u8') ? 'hls' : 'mp4');
+      const updatedEp = { ...ep, videoUrl: url, streamFormat: format };
+      this.episodes.update((list) => list.map((e) => e.id === ep.id ? updatedEp : e));
+      this.activeEpisode.set(updatedEp);
+      if (openPlayerWhenDone) {
+        this.playerOpen.set(true);
+      }
+    });
   }
 
   constructor() {
@@ -206,6 +270,7 @@ export class Watch {
               duration: movie.duration || movie.durationHHmm,
               parentalRating: movie.parentalRating ? String(movie.parentalRating) : undefined,
               videoResolverUrl: movie.videoResolverURL || movie.urlResolverPath,
+              alternativeVideoResolverUrl: movie.alternativeVideoResolverURL || movie.alternativeVideoResolverUrl,
             })));
       }),
       catchError(() => of(null)),
@@ -260,6 +325,7 @@ export class Watch {
         bannerUrl: ep.bannerURL || ep.bannerUrl,
         duration: ep.duration ? (typeof ep.duration === 'number' ? `${Math.floor(ep.duration / 60)} min` : String(ep.duration)) : ep.durationHHmm,
         videoResolverUrl: ep.videoResolverURL || ep.urlResolverPath || ep.video?.url,
+        alternativeVideoResolverUrl: ep.alternativeVideoResolverURL || ep.alternativeVideoResolverUrl,
         videoUrl: ep.video?.url,
         streamFormat: ep.video?.streamFormat || 'mp4',
       }));
@@ -269,4 +335,3 @@ export class Watch {
     });
   }
 }
-

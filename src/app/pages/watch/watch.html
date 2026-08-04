@@ -32,6 +32,29 @@
 
     <h1 class="main-title">{{ content.title }}</h1>
 
+    @if (hasSubtitledVersion()) {
+    <div class="audio-selector-container">
+      <div class="audio-selector">
+        <button
+          type="button"
+          class="audio-btn"
+          [class.active]="selectedAudio() === 'dub'"
+          (click)="setAudio('dub')"
+        >
+          <i class="bi bi-translate"></i> Dublado
+        </button>
+        <button
+          type="button"
+          class="audio-btn"
+          [class.active]="selectedAudio() === 'sub'"
+          (click)="setAudio('sub')"
+        >
+          <i class="bi bi-chat-square-text-fill"></i> Legendado
+        </button>
+      </div>
+    </div>
+    }
+
     <div class="action-buttons">
       <button class="btn-primary" (click)="openPlayer()" [disabled]="resolvingVideo()">
         @if (resolvingVideo()) {
