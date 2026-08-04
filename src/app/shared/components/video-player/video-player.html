@@ -29,6 +29,15 @@
 
   <div class="vp__overlay" [class.is-hidden]="!showControls()" (click)="togglePlay($event)"></div>
 
+  @if (videoState() === 'ended' && hasNextEpisode()) {
+    <div class="vp__ended-overlay">
+      <p class="vp__ended-title">Episódio Finalizado</p>
+      <button type="button" class="vp__next-overlay-btn" (click)="onNextEpisode($event)">
+        <i class="bi bi-skip-end-fill me-1"></i> Próximo Episódio
+      </button>
+    </div>
+  }
+
   @if (videoState() === 'error') {
     <div class="vp__error">
       <i class="bi bi-exclamation-triangle-fill"></i>
@@ -73,6 +82,12 @@
       </div>
 
       <div class="vp__group">
+        @if (hasNextEpisode()) {
+          <button type="button" class="vp__btn vp__btn--next" (click)="onNextEpisode($event)" title="Próximo Episódio">
+            <i class="bi bi-skip-end-fill"></i>
+          </button>
+        }
+
         @if (qualities().length > 1) {
           <div class="vp__settings">
             <button type="button" class="vp__btn" (click)="showSettings.set(!showSettings())" aria-label="Qualidade">

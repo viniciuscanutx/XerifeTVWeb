@@ -37,8 +37,10 @@ export class VideoPlayer implements OnDestroy {
   readonly poster = input<string | null>(null);
   readonly autoplay = input<boolean>(true);
   readonly startTime = input<number>(0);
+  readonly hasNextEpisode = input<boolean>(false);
 
   readonly timeUpdate = output<{ currentTime: number; duration: number }>();
+  readonly nextEpisode = output<void>();
 
   private readonly videoRef = viewChild<ElementRef<HTMLVideoElement>>('videoRef');
 
@@ -281,6 +283,12 @@ export class VideoPlayer implements OnDestroy {
         }
       });
     }
+  }
+
+  onNextEpisode(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    this.nextEpisode.emit();
   }
 
   togglePlay(event?: Event): void {

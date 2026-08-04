@@ -26,9 +26,11 @@ export class VideoPlayerModal implements OnDestroy {
   readonly poster = input<string | null>(null);
   readonly title = input<string>('');
   readonly startTime = input<number>(0);
+  readonly hasNextEpisode = input<boolean>(false);
 
   readonly closed = output<void>();
   readonly timeUpdate = output<{ currentTime: number; duration: number }>();
+  readonly nextEpisode = output<void>();
 
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly keydownHandler = (e: KeyboardEvent) => {

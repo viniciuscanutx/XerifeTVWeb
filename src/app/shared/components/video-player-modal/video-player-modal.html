@@ -18,7 +18,9 @@
             [poster]="poster()"
             [autoplay]="true"
             [startTime]="startTime()"
+            [hasNextEpisode]="hasNextEpisode()"
             (timeUpdate)="timeUpdate.emit($event)"
+            (nextEpisode)="nextEpisode.emit()"
           />
         }
       </div>

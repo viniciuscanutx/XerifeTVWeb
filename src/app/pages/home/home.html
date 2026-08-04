@@ -62,7 +62,7 @@
 
       <div class="continue-grid">
         @for (item of continueWatchingItems(); track item.contentId) {
-        <div class="continue-card" [routerLink]="['/watch', item.type, item.contentId]">
+        <div class="continue-card" [routerLink]="['/watch', item.type, item.contentId]" [queryParams]="{ autoplay: 'true', episodeId: item.episodeId, season: item.season }">
           <div class="continue-card__image-wrap">
             <img [src]="item.backdrop || item.poster" [alt]="item.title" loading="lazy" />
             <button type="button" class="continue-card__remove" (click)="removeHistory($event, item.contentId)" title="Remover do histórico">

@@ -69,6 +69,9 @@ export class Watch {
   readonly resolvingVideo = signal(false);
   readonly playerOpen = signal(false);
   readonly savedStartTime = signal<number>(0);
+  readonly autoPlayRequested = signal<boolean>(false);
+  readonly targetEpisodeId = signal<string | null>(null);
+  readonly targetSeason = signal<number | null>(null);
 
   // Audio selection signal ('dub' = Dublado, 'sub' = Legendado)
   readonly selectedAudio = signal<'dub' | 'sub'>('dub');
@@ -135,6 +138,18 @@ export class Watch {
       return !!item?.highQuality || this.episodes().some((e) => !!e.highQuality);
     }
     return !!item?.highQuality;
+  });
+
+  readonly hasNextEpisode = computed(() => {
+    const item = this.item();
+    const ep = this.activeEpisode();
+    if (item?.type !== 'series' || !ep) return false;
+    const list = this.episodes();
+    const idx = list.findIndex((e) => e.id === ep.id);
+    if (idx >= 0 && idx < list.length - 1) return true;
+    const seasons = item.totalSeasons || 1;
+    const currentSeason = ep.season ?? this.selectedSeason();
+    return currentSeason < seasons;
   });
 
   readonly playerTitle = computed(() => {
@@ -332,7 +347,70 @@ export class Watch {
     });
   }
 
+  playNextEpisode(): void {
+    const item = this.item();
+    const ep = this.activeEpisode();
+    if (item?.type !== 'series' || !ep) return;
+
+    const list = this.episodes();
+    const idx = list.findIndex((e) => e.id === ep.id);
+
+    if (idx >= 0 && idx < list.length - 1) {
+      const nextEp = list[idx + 1];
+      this.playEpisode(nextEp);
+    } else {
+      const seasons = item.totalSeasons || 1;
+      const currentSeason = ep.season ?? this.selectedSeason();
+      if (currentSeason < seasons) {
+        const nextSeason = currentSeason + 1;
+        this.selectedSeason.set(nextSeason);
+        this.episodePage.set(1);
+        this.loadingEpisodes.set(true);
+        this.api.getEpisodes(item.id, nextSeason).pipe(catchError(() => of([]))).subscribe((res: any) => {
+          this.loadingEpisodes.set(false);
+          let rawList: any[] = [];
+          if (Array.isArray(res)) rawList = res;
+          else if (res?.episodes && Array.isArray(res.episodes)) rawList = res.episodes;
+          else if (res?.items && Array.isArray(res.items)) rawList = res.items;
+
+          const nextList: EpisodeItem[] = rawList.map((e: any, index: number) => ({
+            id: e.id || `ep-${index}`,
+            title: e.title || `Episódio ${e.number ?? index + 1}`,
+            number: e.number ?? index + 1,
+            season: e.season ?? nextSeason,
+            bannerUrl: e.bannerURL || e.bannerUrl,
+            duration: e.duration ? (typeof e.duration === 'number' ? `${Math.floor(e.duration / 60)} min` : String(e.duration)) : e.durationHHmm,
+            videoResolverUrl: e.videoResolverURL || e.urlResolverPath || e.video?.url,
+            alternativeVideoResolverUrl: e.alternativeVideoResolverURL || e.alternativeVideoResolverUrl,
+            videoUrl: e.video?.url,
+            streamFormat: e.video?.streamFormat || 'mp4',
+            highQuality: e.highQuality ?? e.HighQuality ?? false,
+          }));
+
+          this.episodes.set(nextList);
+          if (nextList.length > 0) {
+            this.playEpisode(nextList[0]);
+          }
+        });
+      }
+    }
+  }
+
   constructor() {
+    this.route.queryParamMap.subscribe((qParams) => {
+      if (qParams.get('autoplay') === 'true') {
+        this.autoPlayRequested.set(true);
+      }
+      if (qParams.get('episodeId')) {
+        this.targetEpisodeId.set(qParams.get('episodeId'));
+      }
+      if (qParams.get('season')) {
+        const s = Number(qParams.get('season')) || 1;
+        this.targetSeason.set(s);
+        this.selectedSeason.set(s);
+      }
+    });
+
     this.route.paramMap.pipe(
       switchMap((params) => {
         const id = params.get('id');
@@ -370,9 +448,15 @@ export class Watch {
       this.loading.set(false);
 
       if (item?.type === 'series') {
-        this.loadEpisodes(item.id, 1);
-      } else if (item?.videoResolverUrl) {
-        this.loadVideo(item.videoResolverUrl);
+        const seasonToLoad = this.targetSeason() || 1;
+        this.loadEpisodes(item.id, seasonToLoad);
+      } else if (item) {
+        if (this.autoPlayRequested()) {
+          this.autoPlayRequested.set(false);
+          this.openPlayer();
+        } else if (item.videoResolverUrl) {
+          this.loadVideo(item.videoResolverUrl);
+        }
       }
     });
   }
@@ -454,6 +538,15 @@ export class Watch {
 
       this.episodes.set(list);
       this.episodePage.set(1);
+
+      if (this.autoPlayRequested()) {
+        this.autoPlayRequested.set(false);
+        const targetEpId = this.targetEpisodeId();
+        const targetEp = (targetEpId ? list.find((e) => e.id === targetEpId) : null) || list[0];
+        if (targetEp) {
+          this.playEpisode(targetEp);
+        }
+      }
     });
   }
 }

@@ -206,6 +206,6 @@
 </main>
 
 <app-video-player-modal [open]="playerOpen()" [src]="playerVideoUrl()" [streamFormat]="playerStreamFormat()"
-  [poster]="content.backdrop || content.poster" [title]="playerTitle()" [startTime]="savedStartTime()" (timeUpdate)="onTimeUpdate($event)" (closed)="closePlayer()" />
+  [poster]="content.backdrop || content.poster" [title]="playerTitle()" [startTime]="savedStartTime()" [hasNextEpisode]="hasNextEpisode()" (timeUpdate)="onTimeUpdate($event)" (nextEpisode)="playNextEpisode()" (closed)="closePlayer()" />
 
 }
