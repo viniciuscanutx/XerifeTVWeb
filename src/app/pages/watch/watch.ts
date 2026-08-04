@@ -274,16 +274,56 @@ export class Watch {
             })));
       }),
       catchError(() => of(null)),
-    ).subscribe((item: WatchItem | null) => {
+    ).subscribe(async (item: WatchItem | null) => {
       this.item.set(item);
       this.playerError.set(false);
       this.error.set(item ? null : 'Não foi possível encontrar este título.');
+
+      if (item) {
+        const imageUrl = item.backdrop || item.poster;
+        if (imageUrl) {
+          await this.preloadImage(imageUrl);
+        }
+      }
+
       this.loading.set(false);
 
       if (item?.type === 'series') {
         this.loadEpisodes(item.id, 1);
       } else if (item?.videoResolverUrl) {
         this.loadVideo(item.videoResolverUrl);
+      }
+    });
+  }
+
+  private preloadImage(url?: string | null): Promise<void> {
+    if (!url) return Promise.resolve();
+    return new Promise((resolve) => {
+      const img = new Image();
+      let resolved = false;
+
+      const done = () => {
+        if (!resolved) {
+          resolved = true;
+          resolve();
+        }
+      };
+
+      const timer = setTimeout(done, 5000);
+
+      img.onload = () => {
+        clearTimeout(timer);
+        done();
+      };
+      img.onerror = () => {
+        clearTimeout(timer);
+        done();
+      };
+
+      img.src = url;
+      if (img.complete) {
+        clearTimeout(timer);
+        done();
       }
     });
   }
