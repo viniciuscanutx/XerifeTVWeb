@@ -7,12 +7,25 @@ import { seriesToMediaItem, toMediaItem } from '../../shared/data/content-api.ma
 import { capitalizeFirstLetter } from '../../utils/utils';
 import { VideoPlayerModal } from '../../shared/components/video-player-modal/video-player-modal';
 
-interface WatchItem extends MediaItem {
+export interface EpisodeItem {
+  id: string;
+  title: string;
+  number?: number;
+  season?: number;
+  bannerUrl?: string;
+  duration?: string;
+  videoResolverUrl?: string | null;
+  videoUrl?: string | null;
+  streamFormat?: string;
+}
+
+export interface WatchItem extends MediaItem {
   duration?: string;
   parentalRating?: string;
   videoUrl?: string | null;
   videoResolverUrl?: string | null;
   streamFormat?: string;
+  totalSeasons?: number;
 }
 
 interface ParentalBadge {
@@ -49,7 +62,67 @@ export class Watch {
   readonly playerError = signal(false);
   readonly resolvingVideo = signal(false);
   readonly playerOpen = signal(false);
+
+  // Series & Episode signals
+  readonly selectedSeason = signal<number>(1);
+  readonly episodes = signal<EpisodeItem[]>([]);
+  readonly loadingEpisodes = signal<boolean>(false);
+  readonly activeEpisode = signal<EpisodeItem | null>(null);
+  readonly episodePage = signal<number>(1);
+  readonly episodesPerPage = 10;
+
   readonly contentLabel = computed(() => this.item()?.type === 'series' ? 'Série' : 'Filme');
+
+  readonly seasonsList = computed<number[]>(() => {
+    const seasons = this.item()?.totalSeasons || 1;
+    return Array.from({ length: seasons }, (_, i) => i + 1);
+  });
+
+  readonly totalEpisodePages = computed(() => {
+    return Math.ceil(this.episodes().length / this.episodesPerPage) || 1;
+  });
+
+  readonly episodePageNumbers = computed<number[]>(() => {
+    const total = this.totalEpisodePages();
+    return Array.from({ length: total }, (_, i) => i + 1);
+  });
+
+  readonly paginatedEpisodes = computed(() => {
+    const page = this.episodePage();
+    const start = (page - 1) * this.episodesPerPage;
+    return this.episodes().slice(start, start + this.episodesPerPage);
+  });
+
+  readonly playerTitle = computed(() => {
+    const item = this.item();
+    const ep = this.activeEpisode();
+    if (!item) return '';
+    if (item.type === 'series' && ep) {
+      const seasonNum = ep.season ?? this.selectedSeason();
+      const epNum = ep.number ?? 1;
+      return `${item.title} - T${seasonNum}:E${epNum}${ep.title ? ' (' + ep.title + ')' : ''}`;
+    }
+    return item.title;
+  });
+
+  readonly playerVideoUrl = computed(() => {
+    const ep = this.activeEpisode();
+    const item = this.item();
+    if (item?.type === 'series' && ep) {
+      return ep.videoUrl || ep.videoResolverUrl || null;
+    }
+    return item?.videoUrl || item?.videoResolverUrl || null;
+  });
+
+  readonly playerStreamFormat = computed(() => {
+    const ep = this.activeEpisode();
+    const item = this.item();
+    if (item?.type === 'series' && ep) {
+      return ep.streamFormat || 'mp4';
+    }
+    return item?.streamFormat || 'mp4';
+  });
+
   readonly parentalBadge = computed<ParentalBadge | null>(() => {
     const raw = this.item()?.parentalRating?.trim().toUpperCase() ?? '';
     if (!raw) return null;
@@ -60,11 +133,60 @@ export class Watch {
   });
 
   openPlayer(): void {
-    this.playerOpen.set(true);
+    const item = this.item();
+    if (item?.type === 'series') {
+      const epList = this.episodes();
+      if (epList.length > 0) {
+        this.playEpisode(epList[0]);
+      } else {
+        this.playerOpen.set(true);
+      }
+    } else {
+      this.activeEpisode.set(null);
+      this.playerOpen.set(true);
+    }
   }
 
   closePlayer(): void {
     this.playerOpen.set(false);
+  }
+
+  selectSeason(season: number): void {
+    this.selectedSeason.set(season);
+    this.episodePage.set(1);
+    const seriesId = this.item()?.id;
+    if (seriesId) {
+      this.loadEpisodes(seriesId, season);
+    }
+  }
+
+  onSeasonChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectSeason(Number(value));
+  }
+
+  goToEpisodePage(page: number): void {
+    if (page >= 1 && page <= this.totalEpisodePages()) {
+      this.episodePage.set(page);
+    }
+  }
+
+  playEpisode(ep: EpisodeItem): void {
+    this.activeEpisode.set(ep);
+    const resolverUrl = ep.videoResolverUrl;
+    if (resolverUrl && !ep.videoUrl) {
+      this.resolvingVideo.set(true);
+      this.api.resolveVideoUrl(resolverUrl).pipe(catchError(() => of(null))).subscribe((video) => {
+        this.resolvingVideo.set(false);
+        const url = video?.url || resolverUrl;
+        const format = video?.streamFormat || (url?.includes('.m3u8') ? 'hls' : 'mp4');
+        const updatedEp = { ...ep, videoUrl: url, streamFormat: format };
+        this.activeEpisode.set(updatedEp);
+        this.playerOpen.set(true);
+      });
+    } else {
+      this.playerOpen.set(true);
+    }
   }
 
   constructor() {
@@ -74,15 +196,16 @@ export class Watch {
         if (!id) return of(null);
 
         return params.get('type') === 'series'
-          ? this.api.getSeriesById(id).pipe(map((series) => ({
+          ? this.api.getSeriesById(id).pipe(map((series: any) => ({
               ...seriesToMediaItem(series),
-              parentalRating: series.parentalRating,
+              parentalRating: series.parentalRating ? String(series.parentalRating) : undefined,
+              totalSeasons: Number(series.totalSeasons || series.numberSeasons) || 1,
             })))
-          : this.api.getMovieById(id).pipe(map((movie) => ({
+          : this.api.getMovieById(id).pipe(map((movie: any) => ({
               ...toMediaItem(movie),
-              duration: movie.duration,
-              parentalRating: movie.parentalRating,
-              videoResolverUrl: movie.videoResolverURL,
+              duration: movie.duration || movie.durationHHmm,
+              parentalRating: movie.parentalRating ? String(movie.parentalRating) : undefined,
+              videoResolverUrl: movie.videoResolverURL || movie.urlResolverPath,
             })));
       }),
       catchError(() => of(null)),
@@ -91,7 +214,12 @@ export class Watch {
       this.playerError.set(false);
       this.error.set(item ? null : 'Não foi possível encontrar este título.');
       this.loading.set(false);
-      if (item?.videoResolverUrl) this.loadVideo(item.videoResolverUrl);
+
+      if (item?.type === 'series') {
+        this.loadEpisodes(item.id, 1);
+      } else if (item?.videoResolverUrl) {
+        this.loadVideo(item.videoResolverUrl);
+      }
     });
   }
 
@@ -109,6 +237,36 @@ export class Watch {
     });
   }
 
-  
+  private loadEpisodes(seriesId: string, season: number): void {
+    this.loadingEpisodes.set(true);
+    this.api.getEpisodes(seriesId, season).pipe(
+      catchError(() => of([])),
+    ).subscribe((res: any) => {
+      this.loadingEpisodes.set(false);
+      let rawList: any[] = [];
+      if (Array.isArray(res)) {
+        rawList = res;
+      } else if (res?.episodes && Array.isArray(res.episodes)) {
+        rawList = res.episodes;
+      } else if (res?.items && Array.isArray(res.items)) {
+        rawList = res.items;
+      }
 
+      const list: EpisodeItem[] = rawList.map((ep: any, index: number) => ({
+        id: ep.id || `ep-${index}`,
+        title: ep.title || `Episódio ${ep.number ?? index + 1}`,
+        number: ep.number ?? index + 1,
+        season: ep.season ?? season,
+        bannerUrl: ep.bannerURL || ep.bannerUrl,
+        duration: ep.duration ? (typeof ep.duration === 'number' ? `${Math.floor(ep.duration / 60)} min` : String(ep.duration)) : ep.durationHHmm,
+        videoResolverUrl: ep.videoResolverURL || ep.urlResolverPath || ep.video?.url,
+        videoUrl: ep.video?.url,
+        streamFormat: ep.video?.streamFormat || 'mp4',
+      }));
+
+      this.episodes.set(list);
+      this.episodePage.set(1);
+    });
+  }
 }
+

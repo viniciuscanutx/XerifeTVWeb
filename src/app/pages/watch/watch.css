@@ -215,3 +215,228 @@
   color: #c4c4cc;
   line-height: 1.5;
 }
+
+/* Episodes Section */
+.episodes-card {
+  background-color: #15151e;
+  border-radius: 24px;
+  padding: 24px;
+}
+
+.episodes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.season-select {
+  background-color: #1a1a24;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.season-select:focus {
+  border-color: #9b68ff;
+}
+
+.episodes-loading,
+.episodes-empty {
+  text-align: center;
+  padding: 30px 0;
+  color: #7a7a85;
+  font-size: 14px;
+}
+
+.episodes-loading i {
+  color: #9b68ff;
+  margin-right: 8px;
+}
+
+.episodes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.episode-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.episode-item:hover {
+  background-color: rgba(155, 104, 255, 0.1);
+  border-color: rgba(155, 104, 255, 0.3);
+  transform: translateX(4px);
+}
+
+.episode-item:focus-visible {
+  outline: 2px solid #9b68ff;
+}
+
+.episode-thumb-container {
+  position: relative;
+  width: 120px;
+  height: 68px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: #0b0b0f;
+}
+
+.episode-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.episode-play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.episode-item:hover .episode-play-overlay {
+  opacity: 1;
+}
+
+.episode-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.episode-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.episode-number {
+  font-size: 13px;
+  font-weight: 700;
+  color: #9b68ff;
+  flex-shrink: 0;
+}
+
+.episode-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.episode-duration {
+  font-size: 12px;
+  color: #7a7a85;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 576px) {
+  .episode-thumb-container {
+    width: 90px;
+    height: 52px;
+  }
+  .episode-title {
+    font-size: 13px;
+  }
+}
+
+/* Episodes Pagination */
+.episodes-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  flex-wrap: wrap;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background-color: #1a1a24;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: rgba(155, 104, 255, 0.2);
+  border-color: rgba(155, 104, 255, 0.4);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.page-num-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  color: #c4c4cc;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.page-num-btn:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.page-num-btn.active {
+  background-color: #9b68ff;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(155, 104, 255, 0.4);
+}

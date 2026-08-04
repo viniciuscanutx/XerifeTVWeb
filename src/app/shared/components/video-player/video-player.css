@@ -5,7 +5,7 @@
   background: #000;
   color: #fff;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  --vp-accent: #e50914;
+  --vp-accent: #9b68ff;
   --vp-bg: rgba(0, 0, 0, .7);
   --vp-bg-strong: rgba(0, 0, 0, .9);
   --vp-radius: 4px;
@@ -60,7 +60,7 @@
   box-shadow: 0 8px 32px rgba(0,0,0,.6);
   transition: transform var(--vp-transition), background var(--vp-transition);
 }
-.vp__big-btn:hover { transform: scale(1.05); background: #ff0a16; }
+.vp__big-btn:hover { transform: scale(1.05); background: #aa7cff; }
 .vp__big-btn:active { transform: scale(.98); }
 
 /* Spinner */
@@ -112,7 +112,7 @@
   cursor: pointer;
   transition: background var(--vp-transition);
 }
-.vp__retry:hover { background: #ff0a16; }
+.vp__retry:hover { background: #aa7cff; }
 
 /* Controls */
 .vp__controls {
@@ -146,7 +146,7 @@
 }
 .vp__progress-buffered { background: rgba(255,255,255,.35); }
 .vp__progress-played { background: var(--vp-accent); }
-.vp__progress:hover .vp__progress-played { background: #ff0a16; }
+.vp__progress:hover .vp__progress-played { background: #aa7cff; }
 
 .vp__row {
   display: flex;

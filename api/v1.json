@@ -1,0 +1,1205 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "Content API",
+    "description": "content API documentation",
+    "version": "v1"
+  },
+  "paths": {
+    "/Api/Content/Movies": {
+      "get": {
+        "tags": [
+          "ContentV1"
+        ],
+        "parameters": [
+          {
+            "name": "categories",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "ação, terror"
+            }
+          },
+          {
+            "name": "currentPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetMovieContentResponseDtoItemsByCategory"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetMovieContentResponseDtoItemsByCategory"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetMovieContentResponseDtoItemsByCategory"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Api/Content/Movies/{category}": {
+      "get": {
+        "tags": [
+          "ContentV1"
+        ],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currentPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMovieContentResponseDtoPagedList"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMovieContentResponseDtoPagedList"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMovieContentResponseDtoPagedList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Api/Content/Series": {
+      "get": {
+        "tags": [
+          "ContentV1"
+        ],
+        "parameters": [
+          {
+            "name": "categories",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "ação, terror"
+            }
+          },
+          {
+            "name": "currentPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetSeriesContentResponseDtoItemsByCategory"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetSeriesContentResponseDtoItemsByCategory"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetSeriesContentResponseDtoItemsByCategory"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Api/Content/Series/{category}": {
+      "get": {
+        "tags": [
+          "ContentV1"
+        ],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currentPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetSeriesContentResponseDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetSeriesContentResponseDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetSeriesContentResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Api/Content/Series/Episodes/{serieId}/{season}": {
+      "get": {
+        "tags": [
+          "ContentV1"
+        ],
+        "parameters": [
+          {
+            "name": "serieId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "season",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Episode"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Episode"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Episode"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Api/Content/Channels": {
+      "get": {
+        "tags": [
+          "ContentV1"
+        ],
+        "parameters": [
+          {
+            "name": "categories",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "noticias, esporte"
+            }
+          },
+          {
+            "name": "currentPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetChannelContentResponseDtoItemsByCategory"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetChannelContentResponseDtoItemsByCategory"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetChannelContentResponseDtoItemsByCategory"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Api/Content/Search/{title}": {
+      "get": {
+        "tags": [
+          "ContentV1"
+        ],
+        "parameters": [
+          {
+            "name": "title",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currentPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetContentsByNameResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetContentsByNameResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetContentsByNameResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/movies": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/series": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/movies/{id}": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/series/{id}": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/series/{seriesId}/seasons/{seasonNumber}/episodes": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "parameters": [
+          {
+            "name": "seriesId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "seasonNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/movies/categories": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/series/categories": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/movies/category/{category}": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/series/category/{category}": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/movies/{movieId}/recommended": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "parameters": [
+          {
+            "name": "movieId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/series/{seriesId}/recommended": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "parameters": [
+          {
+            "name": "seriesId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/search": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "parameters": [
+          {
+            "name": "term",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/home": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/movies/categories/groups": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "parameters": [
+          {
+            "name": "categories",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Api/Content/v2/series/categories/groups": {
+      "get": {
+        "tags": [
+          "ContentV2"
+        ],
+        "parameters": [
+          {
+            "name": "categories",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Episode": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "createAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updateAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "bannerUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "season": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "video": {
+            "$ref": "#/components/schemas/Video"
+          },
+          "alternativeVideoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "mediaDeliveryProfileId": {
+            "type": "string",
+            "nullable": true
+          },
+          "mediaRoute": {
+            "type": "string",
+            "nullable": true
+          },
+          "disabled": {
+            "type": "boolean"
+          },
+          "urlResolverPath": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "alternativeUrlResolverPath": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetChannelContentResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "readOnly": true
+          },
+          "logoUrl": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "video": {
+            "$ref": "#/components/schemas/Video"
+          },
+          "mediaDeliveryProfileId": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "mediaRoute": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "urlResolverPath": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetChannelContentResponseDtoItemsByCategory": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetChannelContentResponseDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetContentsByNameResponseDto": {
+        "type": "object",
+        "properties": {
+          "movies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetMovieContentResponseDto"
+            },
+            "nullable": true
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetSeriesContentResponseDto"
+            },
+            "nullable": true
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetChannelContentResponseDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetMovieContentResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "synopsis": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "readOnly": true
+          },
+          "posterUrl": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "bannerUrl": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "releaseYear": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "parentalRating": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "review": {
+            "type": "number",
+            "format": "float",
+            "readOnly": true
+          },
+          "video": {
+            "$ref": "#/components/schemas/Video"
+          },
+          "mediaDeliveryProfileId": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "mediaRoute": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "durationHHmm": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "urlResolverPath": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "alternativeVideoUrl": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "alternativeUrlResolverPath": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetMovieContentResponseDtoItemsByCategory": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetMovieContentResponseDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetMovieContentResponseDtoPagedList": {
+        "type": "object",
+        "properties": {
+          "pageSize": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "currentPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPageCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetMovieContentResponseDto"
+            },
+            "nullable": true
+          },
+          "hasPrevious": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "hasNext": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetSeriesContentResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "synopsis": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "readOnly": true
+          },
+          "posterUrl": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "bannerUrl": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "releaseYear": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "parentalRating": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "review": {
+            "type": "number",
+            "format": "float",
+            "readOnly": true
+          },
+          "numberSeasons": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetSeriesContentResponseDtoItemsByCategory": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetSeriesContentResponseDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Video": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "streamFormat": {
+            "type": "string",
+            "nullable": true
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "ContentV1"
+    },
+    {
+      "name": "ContentV2"
+    }
+  ]
+}

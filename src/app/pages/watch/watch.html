@@ -1,94 +1,167 @@
 @if (loading()) {
-  <main class="watch-state">
-    <i class="bi bi-hourglass-split"></i> Carregando título...
-  </main>
+<main class="watch-state">
+  <i class="bi bi-hourglass-split"></i> Carregando título...
+</main>
 }
 @else if (item(); as content) {
-  <main class="watch-page">
-    
-    <div class="hero-section">
+<main class="watch-page">
 
-      <button class="top-left-btn" routerLink="/home">
-        <i class="bi bi-arrow-left"></i>
+  <div class="hero-section">
+
+    <button class="top-left-btn" routerLink="/home">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+
+    <img class="hero-image" [src]="content.backdrop" [alt]="content.poster" />
+    <div class="hero-gradient"></div>
+
+  </div>
+
+  <div class="content-overlay">
+
+    <div class="tags-row">
+
+      <span class="tag tag-rating">
+        <i class="bi bi-star-fill"></i> {{ content.rating.toFixed(1) }}
+      </span>
+
+      @if (content.duration) { <span class="tag">{{ content.duration }}</span> }
+
+    </div>
+
+    <h1 class="main-title">{{ content.title }}</h1>
+
+    <div class="action-buttons">
+      <button class="btn-primary" (click)="openPlayer()" [disabled]="resolvingVideo()">
+        @if (resolvingVideo()) {
+        <i class="bi bi-hourglass-split"></i> Carregando vídeo...
+        } @else {
+        <i class="bi bi-play-fill"></i> Assistir
+        }
       </button>
 
-      <img class="hero-image" [src]="content.backdrop" [alt]="content.poster" />
-      <div class="hero-gradient"></div>
-      
+      <button class="btn-secondary">
+        <i class="bi bi-download"></i> Download
+      </button>
     </div>
 
-    <div class="content-overlay">
-      
-      <div class="tags-row">
+    @if (content.type === 'series') {
+    <div class="synopsis-card mb-4 episodes-card">
+      <div class="episodes-header">
+        <h3 class="synopsis-title mb-0">EPISÓDIOS</h3>
 
-        <span class="tag tag-rating">
-          <i class="bi bi-star-fill"></i> {{ content.rating.toFixed(1) }}
-        </span>
-        
-        @if (content.duration) { <span class="tag">{{ content.duration }}</span> }
-        
-      </div>
-
-      <h1 class="main-title">{{ content.title }}</h1>
-
-      <div class="action-buttons">
-        <button class="btn-primary" (click)="openPlayer()" [disabled]="resolvingVideo()">
-          @if (resolvingVideo()) {
-            <i class="bi bi-hourglass-split"></i> Carregando vídeo...
-          } @else {
-            <i class="bi bi-play-fill"></i> Assistir
+        @if (seasonsList().length > 1) {
+        <select class="season-select" [value]="selectedSeason()" (change)="onSeasonChange($event)">
+          @for (s of seasonsList(); track s) {
+          <option [value]="s">Temporada {{ s }}</option>
           }
-        </button>
-        
-        <button class="btn-secondary">
-          <i class="bi bi-download"></i> Download
-        </button>
+        </select>
+        }
       </div>
 
-      <div class="synopsis-card mb-4">
-        <h3 class="synopsis-title">Indicação Parental</h3>
-        
-        @if (parentalBadge(); as badge) {
-          <div class="parental-badge-row">
-            <span
-              class="parental-badge"
-              [style.color]="badge.color === '#000000' ? '#ffffff' : '#000000'"
-              [style.background-color]="badge.bgColor"
-            >{{ badge.label }}</span>
-            <span class="parental-description">{{ badge.description }}</span>
+      @if (loadingEpisodes()) {
+      <div class="episodes-loading">
+        <i class="bi bi-hourglass-split"></i> Carregando episódios...
+      </div>
+      }
+      @else if (episodes().length === 0) {
+      <div class="episodes-empty">
+        Nenhum episódio encontrado para esta temporada.
+      </div>
+      }
+      @else {
+      <div class="episodes-list">
+        @for (ep of paginatedEpisodes(); track ep.id || ep.number; let idx = $index) {
+        <div class="episode-item" (click)="playEpisode(ep)" tabindex="0" role="button">
+          <div class="episode-thumb-container">
+            <img class="episode-thumb" [src]="ep.bannerUrl || content.backdrop || content.poster" [alt]="ep.title" />
+            <div class="episode-play-overlay">
+              <i class="bi bi-play-fill"></i>
+            </div>
           </div>
-        } @else if (content.parentalRating) {
-          <div class="genres-row">
-            <span>{{ content.parentalRating }}</span>
+
+          <div class="episode-info">
+            <div class="episode-header">
+              <span class="episode-number">E{{ ep.number ?? ((episodePage() - 1) * episodesPerPage + idx + 1) }}</span>
+              <h4 class="episode-title">{{ ep.title }}</h4>
+            </div>
+            @if (ep.duration) {
+            <span class="episode-duration"><i class="bi bi-clock"></i> {{ ep.duration }}</span>
+            }
           </div>
+        </div>
         }
+      </div>
 
-        <h3 class="synopsis-title mt-4">GÊNEROS</h3>
+      @if (totalEpisodePages() > 1) {
+      <div class="episodes-pagination">
+        <button
+          class="pagination-btn"
+          [disabled]="episodePage() === 1"
+          (click)="goToEpisodePage(episodePage() - 1)"
+        >
+          <i class="bi bi-chevron-left"></i> Anterior
+        </button>
 
-        <div class="genres-row">
-          @for (genre of content.genres; track genre) {
-            <span class="tag">{{ capitalizeFirstLetter(genre) }}</span>
+        <div class="pagination-pages">
+          @for (p of episodePageNumbers(); track p) {
+          <button
+            class="page-num-btn"
+            [class.active]="p === episodePage()"
+            (click)="goToEpisodePage(p)"
+          >
+            {{ p }}
+          </button>
           }
         </div>
+
+        <button
+          class="pagination-btn"
+          [disabled]="episodePage() === totalEpisodePages()"
+          (click)="goToEpisodePage(episodePage() + 1)"
+        >
+          Próximo <i class="bi bi-chevron-right"></i>
+        </button>
       </div>
+      }
+      }
+    </div>
+    }
 
+    <div class="synopsis-card mb-4">
+      <h3 class="synopsis-title">Indicação Parental</h3>
 
-      <div class="synopsis-card">
-        <h3 class="synopsis-title">SINOPSE</h3>
-        
-        <p class="synopsis-text">{{ content.overview }}</p>
+      @if (parentalBadge(); as badge) {
+      <div class="parental-badge-row">
+        <span class="parental-badge" [style.color]="badge.color === '#000000' ? '#ffffff' : '#000000'"
+          [style.background-color]="badge.bgColor">{{ badge.label }}</span>
+        <span class="parental-description">{{ badge.description }}</span>
       </div>
+      } @else if (content.parentalRating) {
+      <div class="genres-row">
+        <span>{{ content.parentalRating }}</span>
+      </div>
+      }
 
+      <h3 class="synopsis-title mt-4">GÊNEROS</h3>
+
+      <div class="genres-row">
+        @for (genre of content.genres; track genre) {
+        <span class="tag">{{ capitalizeFirstLetter(genre) }}</span>
+        }
+      </div>
     </div>
 
-    <app-video-player-modal
-      [open]="playerOpen()"
-      [src]="content.videoUrl || content.videoResolverUrl || null"
-      [streamFormat]="content.streamFormat || 'mp4'"
-      [poster]="content.backdrop || content.poster"
-      [title]="content.title"
-      (closed)="closePlayer()"
-    />
+    <div class="synopsis-card">
+      <h3 class="synopsis-title">SINOPSE</h3>
 
-  </main>
+      <p class="synopsis-text">{{ content.overview }}</p>
+    </div>
+
+  </div>
+
+  <app-video-player-modal [open]="playerOpen()" [src]="playerVideoUrl()" [streamFormat]="playerStreamFormat()"
+    [poster]="content.backdrop || content.poster" [title]="playerTitle()" (closed)="closePlayer()" />
+
+</main>
 }

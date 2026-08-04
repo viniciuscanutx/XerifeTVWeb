@@ -26,9 +26,10 @@
 
 .hero-banner {
   position: relative;
+  margin-top: -68px;
   margin-bottom: 20px;
   width: 100%;
-  min-height: 72vh;
+  min-height: 75vh;
   max-height: 680px;
   display: flex;
   align-items: flex-end;
