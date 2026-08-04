@@ -1,10 +1,11 @@
 @if (loading()) {
-<main class="watch-state">
-  <i class="bi bi-hourglass-split"></i> Carregando título...
-</main>
+<div class="page-loading-wrapper">
+  <div class="spinner-purple"></div>
+  <p>Carregando título...</p>
+</div>
 }
 @else if (item(); as content) {
-<main class="watch-page">
+<main class="watch-page animate-page-enter">
 
   <div class="hero-section">
 

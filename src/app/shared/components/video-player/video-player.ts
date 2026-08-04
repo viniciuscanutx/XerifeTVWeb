@@ -370,6 +370,11 @@ export class VideoPlayer implements OnDestroy {
     this.scheduleHideControls();
   }
 
+  onTouchStart(): void {
+    this.showControls.set(true);
+    this.scheduleHideControls();
+  }
+
   scheduleHideControls(): void {
     if (this.hideControlsTimeout) clearTimeout(this.hideControlsTimeout);
     this.hideControlsTimeout = setTimeout(() => {

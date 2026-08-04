@@ -1,6 +1,6 @@
 @if (loading()) {
-<div class="loading-container">
-  <i class="bi bi-hourglass-split loading-icon"></i>
+<div class="page-loading-wrapper">
+  <div class="spinner-purple"></div>
   <p class="loading-text">Carregando catálogo...</p>
 </div>
 }
@@ -11,7 +11,7 @@
 </div>
 }
 @else {
-<main class="home-wrapper">
+<main class="home-wrapper animate-page-enter">
   @if (heroItem(); as hero) {
   <section class="hero-banner">
 

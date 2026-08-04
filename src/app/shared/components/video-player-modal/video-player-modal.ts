@@ -5,6 +5,7 @@ import {
   OnDestroy,
   afterNextRender,
   computed,
+  effect,
   inject,
   input,
   output,
@@ -41,9 +42,21 @@ export class VideoPlayerModal implements OnDestroy {
         this.keydownHandler,
       );
     });
+
+    effect(() => {
+      if (this.isOpen()) {
+        document.body.classList.add('vpm-open');
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.classList.remove('vpm-open');
+        document.body.style.overflow = '';
+      }
+    });
   }
 
   close(): void {
+    document.body.classList.remove('vpm-open');
+    document.body.style.overflow = '';
     this.closed.emit();
   }
 
@@ -52,6 +65,8 @@ export class VideoPlayerModal implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    document.body.classList.remove('vpm-open');
+    document.body.style.overflow = '';
     this.host?.nativeElement.ownerDocument.removeEventListener(
       'keydown',
       this.keydownHandler,

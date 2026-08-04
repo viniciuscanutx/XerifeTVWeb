@@ -1,4 +1,4 @@
-<main class="catalog-page">
+<main class="catalog-page animate-page-enter">
   <!-- Desktop Category Filter -->
   @if (categories().length > 0) {
     <div class="desktop-categories-filter">
@@ -33,8 +33,9 @@
 
   <!-- Content Grid -->
   @if (loading()) {
-    <div class="catalog-state">
-      <i class="bi bi-hourglass-split"></i> Carregando filmes...
+    <div class="page-loading-wrapper">
+      <div class="spinner-purple"></div>
+      <p>Carregando filmes...</p>
     </div>
   }
   @else if (filteredMovies().length === 0) {
