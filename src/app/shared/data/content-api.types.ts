@@ -10,8 +10,8 @@ export interface MovieResponse {
   ratingImdb: number;
   duration: string;
   durationSeconds: number;
-  videoResolverURL: string;
-  alternativeVideoResolverURL?: string;
+  videoResolverURL: string | null;
+  alternativeVideoResolverURL?: string | null;
   subtitleURL?: string;
   trailerVideoYoutubeId?: string;
   highQuality?: boolean;
@@ -39,8 +39,8 @@ export interface EpisodeResponse {
   duration: string;
   durationSeconds: number;
   subtitleURL: string;
-  videoResolverURL: string;
-  alternativeVideoResolverURL?: string;
+  videoResolverURL: string | null;
+  alternativeVideoResolverURL?: string | null;
   highQuality?: boolean;
 }
 

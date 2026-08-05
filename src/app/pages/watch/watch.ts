@@ -191,12 +191,16 @@ export class Watch {
     return null;
   });
 
-  private getActiveResolverUrl(target: { videoResolverUrl?: string | null; alternativeVideoResolverUrl?: string | null } | null): string | null {
+  private getActiveResolverUrl(
+    target: { videoResolverUrl?: string | null; alternativeVideoResolverUrl?: string | null } | null,
+    preferredLanguage: 'dub' | 'sub' = this.selectedAudio()
+  ): string | null {
     if (!target) return null;
-    if (this.selectedAudio() === 'sub' && target.alternativeVideoResolverUrl) {
-      return target.alternativeVideoResolverUrl;
+    if (preferredLanguage === 'sub') {
+      return target.alternativeVideoResolverUrl || target.videoResolverUrl || null;
+    } else {
+      return target.videoResolverUrl || target.alternativeVideoResolverUrl || null;
     }
-    return target.videoResolverUrl || null;
   }
 
   setAudio(mode: 'dub' | 'sub'): void {
@@ -209,9 +213,12 @@ export class Watch {
     if (item?.type === 'series') {
       const ep = this.activeEpisode() || this.episodes()[0];
       if (ep) {
-        this.loadEpisodeVideo(ep);
+        const resetEp = { ...ep, videoUrl: null };
+        this.activeEpisode.set(resetEp);
+        this.loadEpisodeVideo(resetEp);
       }
     } else if (item) {
+      this.item.update((curr) => (curr ? { ...curr, videoUrl: null } : curr));
       const resolverUrl = this.getActiveResolverUrl(item);
       if (resolverUrl) {
         this.loadVideo(resolverUrl);
@@ -243,14 +250,18 @@ export class Watch {
       const resolverUrl = this.getActiveResolverUrl(item);
       if (resolverUrl) {
         this.resolvingVideo.set(true);
-        this.api.resolveVideoUrl(resolverUrl).pipe(catchError(() => of(null))).subscribe((video) => {
-          this.resolvingVideo.set(false);
-          const url = video?.url || resolverUrl;
-          const format = video?.streamFormat || (url?.includes('.m3u8') ? 'hls' : 'mp4');
-          this.item.update((curr) => curr ? { ...curr, videoUrl: url, streamFormat: format } : curr);
-          this.playerOpen.set(true);
-        });
+        this.api
+          .resolveVideoUrl(resolverUrl)
+          .pipe(catchError(() => of(null)))
+          .subscribe((video) => {
+            this.resolvingVideo.set(false);
+            const url = video?.url || resolverUrl;
+            const format = video?.streamFormat || (url?.includes('.m3u8') ? 'hls' : 'mp4');
+            this.item.update((curr) => (curr ? { ...curr, videoUrl: url, streamFormat: format } : curr));
+            this.playerOpen.set(true);
+          });
       } else {
+        alert('Nenhum vídeo disponível para este conteúdo.');
         this.playerOpen.set(true);
       }
     }
@@ -454,8 +465,11 @@ export class Watch {
         if (this.autoPlayRequested()) {
           this.autoPlayRequested.set(false);
           this.openPlayer();
-        } else if (item.videoResolverUrl) {
-          this.loadVideo(item.videoResolverUrl);
+        } else {
+          const resolverUrl = this.getActiveResolverUrl(item);
+          if (resolverUrl) {
+            this.loadVideo(resolverUrl);
+          }
         }
       }
     });
