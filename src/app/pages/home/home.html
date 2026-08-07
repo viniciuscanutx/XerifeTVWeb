@@ -62,10 +62,12 @@
 
       <div class="continue-grid">
         @for (item of continueWatchingItems(); track item.contentId) {
-        <div class="continue-card" [routerLink]="['/watch', item.type, item.contentId]" [queryParams]="{ autoplay: 'true', episodeId: item.episodeId, season: item.season }">
+        <div class="continue-card" [routerLink]="['/watch', item.type, item.contentId]"
+          [queryParams]="{ autoplay: 'true', episodeId: item.episodeId, season: item.season }">
           <div class="continue-card__image-wrap">
             <img [src]="item.backdrop || item.poster" [alt]="item.title" loading="lazy" />
-            <button type="button" class="continue-card__remove" (click)="removeHistory($event, item.contentId)" title="Remover do histórico">
+            <button type="button" class="continue-card__remove" (click)="removeHistory($event, item.contentId)"
+              title="Remover do histórico">
               <i class="bi bi-x-lg"></i>
             </button>
             <div class="continue-card__play-overlay">
@@ -82,9 +84,10 @@
             <h4 class="continue-card__title">{{ item.title }}</h4>
             <div class="continue-card__meta">
               @if (item.type === 'series' && item.season) {
-                <span>T{{ item.season }}:E{{ item.episodeNumber || 1 }} {{ item.episodeTitle ? ' • ' + item.episodeTitle : '' }}</span>
+              <span>T{{ item.season }}:E{{ item.episodeNumber || 1 }} {{ item.episodeTitle ? ' • ' + item.episodeTitle :
+                '' }}</span>
               } @else {
-                <span>{{ formatRemainingTime(item) }}</span>
+              <span>{{ formatRemainingTime(item) }}</span>
               }
             </div>
           </div>
@@ -95,7 +98,7 @@
     }
 
     @if (trending().length > 0) {
-      <app-media-carousel title="Em Alta" icon="bi-fire" [items]="trending()" />
+    <app-media-carousel title="Adicionados Recentemente" icon="bi-fire" [items]="trending()" />
     }
 
     @for (rail of categoryRails(); track rail.title) {
