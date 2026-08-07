@@ -3,10 +3,16 @@ import { RouterLink } from '@angular/router';
 import { MediaItem } from '../../shared/components/media-card/media-card';
 import { MediaCarousel } from '../../shared/components/media-carousel/media-carousel';
 import { ContentApiService } from '../../shared/data/content-api.service';
-import { mapHomeResponse, type HomeMappedData } from '../../shared/data/content-api.mapper';
+import { mapHomeResponse, toMediaItem, seriesToMediaItem, type HomeMappedData } from '../../shared/data/content-api.mapper';
 import { capitalizeFirstLetter } from '../../utils/utils';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import { WatchHistoryService, WatchHistoryItem } from '../../shared/services/watch-history.service';
+
+interface CategoryRail {
+  title: string;
+  icon: string;
+  items: MediaItem[];
+}
 
 @Component({
   selector: 'app-home',
@@ -20,10 +26,9 @@ export class Home {
   private readonly watchHistory = inject(WatchHistoryService);
 
   readonly heroItem = signal<MediaItem | null>(null);
-  readonly trending = signal<MediaItem[]>([]);
-  readonly movies = signal<MediaItem[]>([]);
-  readonly series = signal<MediaItem[]>([]);
   readonly topRated = signal<MediaItem[]>([]);
+  readonly trending = signal<MediaItem[]>([]);
+  readonly categoryRails = signal<CategoryRail[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
 
@@ -47,20 +52,53 @@ export class Home {
         );
 
         this.heroItem.set(mapped.heroItem);
-        this.trending.set(mapped.trending);
-        this.movies.set(mapped.movies);
-        this.series.set(mapped.series);
         this.topRated.set(mapped.topRated);
+        this.trending.set(mapped.trending);
         this.loading.set(false);
 
-        if (!mapped.heroItem && mapped.movies.length === 0 && mapped.series.length === 0) {
+        if (!mapped.heroItem && movies.length === 0 && series.length === 0) {
           this.error.set('Não foi possível carregar o conteúdo.');
         }
+
+        this.loadCategoryRails(mapped.movieCategories, mapped.seriesCategories);
       },
       error: () => {
         this.error.set('Não foi possível carregar o conteúdo.');
         this.loading.set(false);
       },
+    });
+  }
+
+  private loadCategoryRails(movieCategories: string[], seriesCategories: string[]): void {
+    const movieCalls = movieCategories.map((cat) =>
+      this.api.getMoviesByCategory(cat, 1, 15).pipe(
+        map((items): CategoryRail => ({
+          title: capitalizeFirstLetter(cat),
+          icon: 'bi-film',
+          items: items.map(toMediaItem),
+        })),
+        catchError(() => of(null)),
+      ),
+    );
+
+    const seriesCalls = seriesCategories.map((cat) =>
+      this.api.getSeriesByCategory(cat, 1, 15).pipe(
+        map((items): CategoryRail => ({
+          title: capitalizeFirstLetter(cat),
+          icon: 'bi-tv',
+          items: items.map(seriesToMediaItem),
+        })),
+        catchError(() => of(null)),
+      ),
+    );
+
+    const calls = [...movieCalls, ...seriesCalls];
+    if (calls.length === 0) return;
+
+    forkJoin(calls).subscribe((rails) => {
+      this.categoryRails.set(
+        rails.filter((r): r is CategoryRail => !!r && r.items.length > 0),
+      );
     });
   }
 

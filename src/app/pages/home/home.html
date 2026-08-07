@@ -95,11 +95,11 @@
     }
 
     @if (trending().length > 0) {
-    <app-media-carousel title="Em Alta" icon="bi-fire" [items]="trending()" />
+      <app-media-carousel title="Em Alta" icon="bi-fire" [items]="trending()" />
     }
 
-    @if (series().length > 0) {
-    <app-media-carousel title="Séries em Destaque" icon="bi-tv" [items]="series()" />
+    @for (rail of categoryRails(); track rail.title) {
+    <app-media-carousel [title]="rail.title" [icon]="rail.icon" [items]="rail.items" />
     }
 
     @if (topRated().length > 0) {

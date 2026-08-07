@@ -1,35 +1,17 @@
 <main class="catalog-page animate-page-enter">
-  <!-- Desktop Category Filter -->
-  @if (categories().length > 0) {
-    <div class="desktop-categories-filter">
-      <button
-        class="filter-pill"
-        [class.active]="selectedCategory() === 'all'"
-        (click)="selectCategory('all')"
-      >
-        Todos
-      </button>
-
-      @for (cat of categories(); track cat) {
-        <button
-          class="filter-pill"
-          [class.active]="selectedCategory() === cat"
-          (click)="selectCategory(cat)"
-        >
-          {{ capitalizeFirstLetter(cat) }}
-        </button>
-      }
-    </div>
-
-    <!-- Mobile Category Filter Trigger Button -->
-    <div class="mobile-filter-bar">
-      <button class="mobile-filter-trigger" (click)="toggleMobileModal()">
-        <i class="bi bi-funnel-fill"></i>
-        <span>Gênero: <strong>{{ selectedCategory() === 'all' ? 'Todos' : capitalizeFirstLetter(selectedCategory()) }}</strong></span>
-        <i class="bi bi-chevron-down"></i>
-      </button>
-    </div>
-  }
+  <app-filter-bar
+    title="Filmes"
+    [count]="filteredMovies().length"
+    countLabel="títulos"
+    [options]="categoryOptions()"
+    [(selected)]="selectedCategory"
+    allLabel="Todos os gêneros"
+    [searchable]="true"
+    [(searchTerm)]="searchTerm"
+    searchPlaceholder="Buscar filme..."
+    [sortOptions]="sortOptions"
+    [(sortValue)]="sortBy"
+  />
 
   <!-- Content Grid -->
   @if (loading()) {
@@ -40,7 +22,7 @@
   }
   @else if (filteredMovies().length === 0) {
     <div class="catalog-state">
-      Nenhum filme encontrado nesta categoria.
+      Nenhum filme encontrado.
     </div>
   }
   @else {
@@ -50,42 +32,6 @@
           <app-media-card [item]="item" />
         </div>
       }
-    </div>
-  }
-
-  <!-- Mobile Category Filter Bottom Modal -->
-  @if (mobileCategoryModalOpen()) {
-    <div class="category-modal-overlay" (click)="closeMobileModal()">
-      <div class="category-modal-card" (click)="$event.stopPropagation()">
-        <div class="category-modal-header">
-          <h3>Filtrar por Gênero</h3>
-          <button class="category-modal-close" (click)="closeMobileModal()">
-            <i class="bi bi-x-lg"></i>
-          </button>
-        </div>
-
-        <div class="category-modal-list">
-          <button
-            class="category-modal-item"
-            [class.active]="selectedCategory() === 'all'"
-            (click)="selectCategory('all')"
-          >
-            <span>Todos os Gêneros</span>
-            @if (selectedCategory() === 'all') { <i class="bi bi-check-lg"></i> }
-          </button>
-
-          @for (cat of categories(); track cat) {
-            <button
-              class="category-modal-item"
-              [class.active]="selectedCategory() === cat"
-              (click)="selectCategory(cat)"
-            >
-              <span>{{ capitalizeFirstLetter(cat) }}</span>
-              @if (selectedCategory() === cat) { <i class="bi bi-check-lg"></i> }
-            </button>
-          }
-        </div>
-      </div>
     </div>
   }
 </main>

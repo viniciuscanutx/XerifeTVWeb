@@ -4,7 +4,15 @@
 @import 'tailwindcss';
 
 :root {
-  --accent: #e50914;
+  --color-bg: #0b0b0f;
+  --color-surface: #15151e;
+  --color-accent: #9b68ff;
+  --color-accent-hover: #aa7cff;
+  --color-accent-shadow: rgba(155, 104, 255, 0.4);
+  --color-text: #ffffff;
+  --color-text-secondary: #c4c4cc;
+  --color-text-muted: #7a7a85;
+  --radius-pill: 20px;
 }
 
 * {

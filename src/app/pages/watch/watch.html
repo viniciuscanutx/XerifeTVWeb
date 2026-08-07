@@ -203,6 +203,10 @@
 
   </div>
 
+  @if (recommended().length > 0) {
+  <app-media-carousel title="Recomendados para você" icon="bi-collection-play" [items]="recommended()" />
+  }
+
 </main>
 
 <app-video-player-modal [open]="playerOpen()" [src]="playerVideoUrl()" [streamFormat]="playerStreamFormat()"

@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { MediaItem } from '../../shared/components/media-card/media-card';
+import { MediaCarousel } from '../../shared/components/media-carousel/media-carousel';
 import { ContentApiService } from '../../shared/data/content-api.service';
 import { seriesToMediaItem, toMediaItem } from '../../shared/data/content-api.mapper';
 import { capitalizeFirstLetter } from '../../utils/utils';
@@ -51,7 +52,7 @@ const PARENTAL_BADGES: Record<string, ParentalBadge> = {
 
 @Component({
   selector: 'app-watch',
-  imports: [RouterLink, VideoPlayerModal],
+  imports: [RouterLink, VideoPlayerModal, MediaCarousel],
   templateUrl: './watch.html',
   styleUrl: './watch.css',
 })
@@ -63,6 +64,7 @@ export class Watch {
   private readonly watchHistory = inject(WatchHistoryService);
 
   readonly item = signal<WatchItem | null>(null);
+  readonly recommended = signal<MediaItem[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly playerError = signal(false);
@@ -458,6 +460,10 @@ export class Watch {
 
       this.loading.set(false);
 
+      if (item) {
+        this.loadRecommended(item);
+      }
+
       if (item?.type === 'series') {
         const seasonToLoad = this.targetSeason() || 1;
         this.loadEpisodes(item.id, seasonToLoad);
@@ -473,6 +479,14 @@ export class Watch {
         }
       }
     });
+  }
+
+  private loadRecommended(item: WatchItem): void {
+    const rec$ = item.type === 'series'
+      ? this.api.getSeriesRecommended(item.id).pipe(map((list) => list.map(seriesToMediaItem)), catchError(() => of([])))
+      : this.api.getMoviesRecommended(item.id).pipe(map((list) => list.map(toMediaItem)), catchError(() => of([])));
+
+    rec$.subscribe((list) => this.recommended.set(list));
   }
 
   private preloadImage(url?: string | null): Promise<void> {

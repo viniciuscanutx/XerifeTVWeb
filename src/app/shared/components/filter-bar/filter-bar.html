@@ -1,0 +1,53 @@
+<div class="toolbar">
+  <div class="toolbar__heading">
+    @if (title()) {
+      <h1 class="toolbar__title">{{ title() }}</h1>
+    }
+    @if (count() !== null) {
+      <span class="toolbar__count">{{ count() }} {{ countLabel() }}</span>
+    }
+  </div>
+
+  <div class="toolbar__controls">
+    @if (searchable()) {
+      <div class="toolbar__search">
+        <i class="bi bi-search toolbar__search-icon"></i>
+        <input
+          type="text"
+          class="toolbar__search-input"
+          [placeholder]="searchPlaceholder()"
+          [value]="searchTerm()"
+          (input)="onSearchInput($event)"
+        />
+        @if (searchTerm()) {
+          <button type="button" class="toolbar__clear-btn" (click)="clearSearch()" aria-label="Limpar busca">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        }
+      </div>
+    }
+
+    @if (options().length > 0) {
+      <div class="toolbar__select-wrap">
+        <select class="toolbar__select" [value]="selected()" (change)="onGenreChange($event)" aria-label="Filtrar por gênero">
+          <option [value]="allValue()">{{ allLabel() }}</option>
+          @for (opt of options(); track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+        <i class="bi bi-chevron-down toolbar__select-caret" aria-hidden="true"></i>
+      </div>
+    }
+
+    @if (sortOptions().length > 0) {
+      <div class="toolbar__select-wrap">
+        <select class="toolbar__select" [value]="sortValue()" (change)="onSortChange($event)" aria-label="Ordenar por">
+          @for (opt of sortOptions(); track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+        <i class="bi bi-chevron-down toolbar__select-caret" aria-hidden="true"></i>
+      </div>
+    }
+  </div>
+</div>

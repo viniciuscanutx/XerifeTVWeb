@@ -1,0 +1,149 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.toolbar__heading {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.toolbar__title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.toolbar__count {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.toolbar__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.toolbar__search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.toolbar__search-input {
+  width: 190px;
+  padding: 8px 32px 8px 34px;
+  border-radius: 8px;
+  background: var(--color-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text);
+  font-size: 13px;
+  transition: border-color 0.2s ease;
+}
+
+.toolbar__search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.toolbar__search-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.toolbar__clear-btn {
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toolbar__clear-btn:hover {
+  color: var(--color-text);
+}
+
+.toolbar__select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.toolbar__select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 8px 30px 8px 12px;
+  border-radius: 8px;
+  background: var(--color-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  max-width: 200px;
+}
+
+.toolbar__select:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.toolbar__select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.toolbar__select-caret {
+  position: absolute;
+  right: 10px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar__controls {
+    justify-content: stretch;
+  }
+
+  .toolbar__search {
+    flex: 1 1 100%;
+  }
+
+  .toolbar__search-input {
+    width: 100%;
+  }
+
+  .toolbar__select-wrap {
+    flex: 1;
+  }
+
+  .toolbar__select {
+    width: 100%;
+    max-width: none;
+  }
+}

@@ -1,15 +1,14 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { catchError, of } from 'rxjs';
 import { ContentApiService } from '../../shared/data/content-api.service';
 import type { ChannelCategoryGroup, ChannelResponse } from '../../shared/data/content-api.types';
 import { VideoPlayerModal } from '../../shared/components/video-player-modal/video-player-modal';
+import { FilterBar, FilterOption } from '../../shared/components/filter-bar/filter-bar';
 import { capitalizeFirstLetter } from '../../utils/utils';
 
 @Component({
   selector: 'app-channels',
-  standalone: true,
-  imports: [FormsModule, VideoPlayerModal],
+  imports: [VideoPlayerModal, FilterBar],
   templateUrl: './channels.html',
   styleUrl: './channels.css',
 })
@@ -47,6 +46,12 @@ export class ChannelsPage implements OnInit {
     }
     return ['todos', ...Array.from(set)];
   });
+
+  readonly categoryFilterOptions = computed<FilterOption[]>(() =>
+    this.categoriesList()
+      .filter((c) => c !== 'todos')
+      .map((c) => ({ value: c, label: capitalizeFirstLetter(c) })),
+  );
 
   readonly filteredGroups = computed<ChannelCategoryGroup[]>(() => {
     const term = this.searchTerm().trim().toLowerCase();
@@ -152,10 +157,6 @@ export class ChannelsPage implements OnInit {
       urlResolverPath: ch.urlResolverPath || ch.videoResolverURL || ch.resolverPath,
       videoResolverURL: ch.videoResolverURL || ch.urlResolverPath,
     };
-  }
-
-  selectCategory(category: string): void {
-    this.selectedCategory.set(category);
   }
 
   playChannel(channel: ChannelResponse): void {

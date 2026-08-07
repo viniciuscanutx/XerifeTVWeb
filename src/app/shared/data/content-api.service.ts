@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
-import { Observable, catchError } from 'rxjs';
+import { Observable, catchError, map } from 'rxjs';
 import type {
   MovieResponse,
   SeriesSummaryResponse,
@@ -50,7 +50,7 @@ export class ContentApiService {
   }
 
   getSeries(limit = 10): Observable<SeriesSummaryResponse[]> {
-    return this.http.get<SeriesSummaryResponse[]>(`${this.base}/series`);
+    return this.http.get<SeriesSummaryResponse[]>(`${this.base}/series?limit=${limit}`);
   }
 
   getMovieById(id: string): Observable<MovieResponse> {
@@ -80,9 +80,11 @@ export class ContentApiService {
   }
 
   getMoviesByCategory(category: string, page = 1, pageSize = 10): Observable<MovieResponse[]> {
-    return this.http.get<MovieResponse[]>(`${this.base}/movies/category/${category}`, {
-      params: new HttpParams().set('page', page).set('pageSize', pageSize),
-    });
+    return this.http
+      .get<PagedList<ItemsByCategory<MovieResponse>>>(`${this.base}/movies/category/${category}`, {
+        params: new HttpParams().set('page', page).set('pageSize', pageSize),
+      })
+      .pipe(map((res) => res.items?.[0]?.items ?? []));
   }
 
   getSeriesByCategory(
@@ -90,9 +92,11 @@ export class ContentApiService {
     page = 1,
     pageSize = 10,
   ): Observable<SeriesSummaryResponse[]> {
-    return this.http.get<SeriesSummaryResponse[]>(`${this.base}/series/category/${category}`, {
-      params: new HttpParams().set('page', page).set('pageSize', pageSize),
-    });
+    return this.http
+      .get<PagedList<ItemsByCategory<SeriesSummaryResponse>>>(`${this.base}/series/category/${category}`, {
+        params: new HttpParams().set('page', page).set('pageSize', pageSize),
+      })
+      .pipe(map((res) => res.items?.[0]?.items ?? []));
   }
 
   getMoviesRecommended(movieId: string): Observable<MovieResponse[]> {

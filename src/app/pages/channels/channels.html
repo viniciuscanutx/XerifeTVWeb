@@ -1,15 +1,17 @@
 <main class="channels-page animate-page-enter">
 
-  <div class="categories-bar">
-    <div class="categories-scroll">
-      @for (cat of categoriesList(); track cat) {
-      <button type="button" class="category-pill" [class.active]="selectedCategory() === cat"
-        (click)="selectCategory(cat)">
-        {{ capitalizeFirstLetter(cat) }}
-      </button>
-      }
-    </div>
-  </div>
+  <app-filter-bar
+    title="Canais ao Vivo"
+    [count]="totalChannelsCount()"
+    countLabel="canais"
+    [options]="categoryFilterOptions()"
+    [(selected)]="selectedCategory"
+    [allValue]="'todos'"
+    allLabel="Todas as categorias"
+    [searchable]="true"
+    [(searchTerm)]="searchTerm"
+    searchPlaceholder="Buscar canal..."
+  />
 
   @if (loading()) {
   <div class="loading-container">
