@@ -48,10 +48,15 @@ export class AuthService {
     return this.http.get<AuthResponse>(`${this.base}/Me`).pipe(
       tap((res) => this.currentUser.set(res.user)),
       map((res) => res.user),
-      catchError(() => {
-        this.currentUser.set(null);
-        return of(null);
-      }),
+      catchError(() =>
+        this.refreshToken().pipe(
+          map((res) => res.user),
+          catchError(() => {
+            this.currentUser.set(null);
+            return of(null);
+          }),
+        ),
+      ),
       tap(() => this.sessionChecked.set(true)),
     );
   }
