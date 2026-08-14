@@ -41,6 +41,7 @@ export class VideoPlayer implements OnDestroy {
 
   readonly timeUpdate = output<{ currentTime: number; duration: number }>();
   readonly nextEpisode = output<void>();
+  readonly ended = output<void>();
 
   private readonly videoRef = viewChild<ElementRef<HTMLVideoElement>>('videoRef');
 
@@ -132,6 +133,7 @@ export class VideoPlayer implements OnDestroy {
     const onEnded = () => {
       this.videoState.set('ended');
       this.currentTime.set(0);
+      this.ended.emit();
     };
     const onLoadedMetadata = () => {
       this.duration.set(video.duration || 0);

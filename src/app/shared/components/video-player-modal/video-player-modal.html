@@ -21,6 +21,7 @@
             [hasNextEpisode]="hasNextEpisode()"
             (timeUpdate)="timeUpdate.emit($event)"
             (nextEpisode)="nextEpisode.emit()"
+            (ended)="ended.emit()"
           />
         }
       </div>

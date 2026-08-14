@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { MediaItem } from '../../shared/components/media-card/media-card';
@@ -7,7 +7,10 @@ import { ContentApiService } from '../../shared/data/content-api.service';
 import { seriesToMediaItem, toMediaItem } from '../../shared/data/content-api.mapper';
 import { capitalizeFirstLetter } from '../../utils/utils';
 import { VideoPlayerModal } from '../../shared/components/video-player-modal/video-player-modal';
-import { WatchHistoryService } from '../../shared/services/watch-history.service';
+import { WatchProgressService } from '../../shared/services/watch-progress.service';
+
+const PROGRESS_SAVE_INTERVAL_MS = 15000;
+const PROGRESS_MIN_CURRENT_TIME = 5;
 
 export interface EpisodeItem {
   id: string;
@@ -56,12 +59,15 @@ const PARENTAL_BADGES: Record<string, ParentalBadge> = {
   templateUrl: './watch.html',
   styleUrl: './watch.css',
 })
-export class Watch {
+export class Watch implements OnDestroy {
   readonly capitalizeFirstLetter = capitalizeFirstLetter;
 
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(ContentApiService);
-  private readonly watchHistory = inject(WatchHistoryService);
+  private readonly watchProgress = inject(WatchProgressService);
+
+  private lastPlayback: { currentTime: number; duration: number } | null = null;
+  private lastProgressSaveAt = 0;
 
   readonly item = signal<WatchItem | null>(null);
   readonly recommended = signal<MediaItem[]>([]);
@@ -232,9 +238,9 @@ export class Watch {
     const item = this.item();
     if (!item) return;
 
-    const history = this.watchHistory.getItemHistory(item.id);
-    if (history && history.currentTime > 0) {
-      this.savedStartTime.set(history.currentTime);
+    const progress = this.watchProgress.getItemProgress(item.id);
+    if (progress && progress.currentTime > 0) {
+      this.savedStartTime.set(progress.currentTime);
     } else {
       this.savedStartTime.set(0);
     }
@@ -270,16 +276,46 @@ export class Watch {
   }
 
   closePlayer(): void {
+    this.flushProgress();
     this.playerOpen.set(false);
   }
 
+  ngOnDestroy(): void {
+    this.flushProgress();
+  }
+
   onTimeUpdate(evt: { currentTime: number; duration: number }): void {
+    if (evt.duration <= 0) return;
+    this.lastPlayback = evt;
+
+    if (evt.currentTime < PROGRESS_MIN_CURRENT_TIME) return;
+    if (Date.now() - this.lastProgressSaveAt < PROGRESS_SAVE_INTERVAL_MS) return;
+
+    this.saveProgress(evt.currentTime, evt.duration);
+  }
+
+  onVideoEnded(): void {
     const item = this.item();
-    if (!item || evt.duration <= 0) return;
+    if (!item) return;
+    this.lastPlayback = null;
+    this.watchProgress.remove(item.id).subscribe();
+  }
+
+  private flushProgress(): void {
+    const last = this.lastPlayback;
+    if (!last || last.currentTime < PROGRESS_MIN_CURRENT_TIME) return;
+    this.saveProgress(last.currentTime, last.duration);
+    this.lastPlayback = null;
+  }
+
+  private saveProgress(currentTime: number, duration: number): void {
+    const item = this.item();
+    if (!item) return;
+    this.lastProgressSaveAt = Date.now();
 
     if (item.type === 'series') {
       const ep = this.activeEpisode();
-      this.watchHistory.saveProgress({
+      this.watchProgress.save({
         contentId: item.id,
         type: 'series',
         title: item.title,
@@ -289,19 +325,19 @@ export class Watch {
         episodeId: ep?.id,
         episodeNumber: ep?.number,
         episodeTitle: ep?.title,
-        currentTime: evt.currentTime,
-        duration: evt.duration,
-      });
+        currentTime,
+        duration,
+      }).subscribe();
     } else {
-      this.watchHistory.saveProgress({
+      this.watchProgress.save({
         contentId: item.id,
         type: 'movie',
         title: item.title,
         poster: item.poster,
         backdrop: item.backdrop,
-        currentTime: evt.currentTime,
-        duration: evt.duration,
-      });
+        currentTime,
+        duration,
+      }).subscribe();
     }
   }
 
@@ -326,11 +362,13 @@ export class Watch {
   }
 
   playEpisode(ep: EpisodeItem): void {
+    this.flushProgress();
+
     const item = this.item();
     if (item) {
-      const history = this.watchHistory.getItemHistory(item.id);
-      if (history && history.episodeId === ep.id && history.currentTime > 0) {
-        this.savedStartTime.set(history.currentTime);
+      const progress = this.watchProgress.getItemProgress(item.id);
+      if (progress && progress.episodeId === ep.id && progress.currentTime > 0) {
+        this.savedStartTime.set(progress.currentTime);
       } else {
         this.savedStartTime.set(0);
       }

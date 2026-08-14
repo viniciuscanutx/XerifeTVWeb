@@ -6,7 +6,7 @@ import { ContentApiService } from '../../shared/data/content-api.service';
 import { mapHomeResponse, toMediaItem, seriesToMediaItem, type HomeMappedData } from '../../shared/data/content-api.mapper';
 import { capitalizeFirstLetter } from '../../utils/utils';
 import { catchError, forkJoin, map, of } from 'rxjs';
-import { WatchHistoryService, WatchHistoryItem } from '../../shared/services/watch-history.service';
+import { WatchProgressService, WatchProgress } from '../../shared/services/watch-progress.service';
 
 interface CategoryRail {
   title: string;
@@ -23,7 +23,7 @@ interface CategoryRail {
 export class Home {
   readonly capitalizeFirstLetter = capitalizeFirstLetter;
   private readonly api = inject(ContentApiService);
-  private readonly watchHistory = inject(WatchHistoryService);
+  private readonly watchProgress = inject(WatchProgressService);
 
   readonly heroItem = signal<MediaItem | null>(null);
   readonly topRated = signal<MediaItem[]>([]);
@@ -33,7 +33,7 @@ export class Home {
   readonly error = signal<string | null>(null);
 
   readonly continueWatchingItems = computed(() => {
-    return this.watchHistory.history().filter((i) => i.progressPercentage > 0 && i.progressPercentage < 95);
+    return this.watchProgress.items().filter((i) => i.progressPercentage > 0 && i.progressPercentage < 95);
   });
 
   readonly hasData = computed(() => this.heroItem() !== null);
@@ -102,7 +102,7 @@ export class Home {
     });
   }
 
-  formatRemainingTime(item: WatchHistoryItem): string {
+  formatRemainingTime(item: WatchProgress): string {
     const remainingSeconds = Math.max(0, item.duration - item.currentTime);
     const minutes = Math.ceil(remainingSeconds / 60);
     if (minutes >= 60) {
@@ -116,6 +116,6 @@ export class Home {
   removeHistory(event: Event, contentId: string): void {
     event.preventDefault();
     event.stopPropagation();
-    this.watchHistory.removeProgress(contentId);
+    this.watchProgress.remove(contentId).subscribe();
   }
 }
