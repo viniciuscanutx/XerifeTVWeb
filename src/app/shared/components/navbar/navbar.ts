@@ -1,9 +1,10 @@
-import { Component, ElementRef, OnDestroy, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { Subject, Subscription, catchError, debounceTime, distinctUntilChanged, filter, of, switchMap } from 'rxjs';
 import { ContentApiService } from '../../data/content-api.service';
 import { seriesToMediaItem, toMediaItem } from '../../data/content-api.mapper';
 import { MediaItem } from '../media-card/media-card';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -14,6 +15,7 @@ import { MediaItem } from '../media-card/media-card';
 export class Navbar implements OnDestroy {
   private readonly router = inject(Router);
   private readonly api = inject(ContentApiService);
+  readonly authService = inject(AuthService);
 
   readonly searchOpen = signal(false);
   readonly searchQuery = signal('');
@@ -21,6 +23,8 @@ export class Navbar implements OnDestroy {
   readonly isSearching = signal(false);
   readonly searchResults = signal<MediaItem[]>([]);
   readonly dropdownOpen = signal(false);
+  readonly accountMenuOpen = signal(false);
+  readonly isLoginPage = computed(() => this.currentUrl().startsWith('/login'));
 
   private readonly searchSubject = new Subject<string>();
   private readonly sub: Subscription;
@@ -33,6 +37,7 @@ export class Navbar implements OnDestroy {
         this.currentUrl.set(event.urlAfterRedirects);
         this.searchOpen.set(false);
         this.dropdownOpen.set(false);
+        this.accountMenuOpen.set(false);
       });
 
     this.sub = this.searchSubject
@@ -91,6 +96,15 @@ export class Navbar implements OnDestroy {
 
   onResultClick(): void {
     this.closeSearch();
+  }
+
+  toggleAccountMenu(): void {
+    this.accountMenuOpen.update((v) => !v);
+  }
+
+  logout(): void {
+    this.accountMenuOpen.set(false);
+    this.authService.logout().subscribe(() => this.router.navigate(['/login']));
   }
 
   ngOnDestroy(): void {

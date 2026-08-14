@@ -277,6 +277,39 @@
   color: #ffffff;
 }
 
+.account-menu-wrapper { position: relative; }
+
+.account-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #16161f;
+  border: 1px solid #2a2a38;
+}
+
+.account-menu-email {
+  font-size: 13px;
+  color: #b0b0c4;
+  border-bottom: 1px solid #2a2a38;
+}
+
+.account-menu-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: #ff8a8a;
+  cursor: pointer;
+}
+
 .mobile-header {
   display: none;
   position: fixed;

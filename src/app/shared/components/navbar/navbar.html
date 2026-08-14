@@ -1,3 +1,4 @@
+@if (!isLoginPage()) {
 <header class="desktop-navbar">
   <div class="navbar-container">
     <div class="nav-left">
@@ -8,18 +9,26 @@
       </a>
 
       <nav class="nav-menu">
+        @if (authService.hasPermission('home.view')) {
         <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <i class="bi bi-house-door"></i> Início
         </a>
+        }
+        @if (authService.hasPermission('movies.view')) {
         <a class="nav-link" routerLink="/movies" routerLinkActive="active">
           <i class="bi bi-film"></i> Filmes
         </a>
+        }
+        @if (authService.hasPermission('series.view')) {
         <a class="nav-link" routerLink="/series" routerLinkActive="active">
           <i class="bi bi-tv"></i> Séries
         </a>
+        }
+        @if (authService.hasPermission('channels.view')) {
         <a class="nav-link" routerLink="/channels" routerLinkActive="active">
           <i class="bi bi-broadcast"></i> Canais
         </a>
+        }
         <a class="nav-link" routerLink="/about" routerLinkActive="active">
           <i class="bi bi-info-circle"></i> Sobre
         </a>
@@ -27,6 +36,7 @@
     </div>
 
     <div class="nav-controls">
+      @if (authService.hasPermission('search')) {
       <div class="desktop-search-wrapper">
         <div class="search-box">
           <i class="bi bi-search search-box-icon"></i>
@@ -74,10 +84,28 @@
         </div>
         }
       </div>
+      }
 
-      <button class="user-avatar-btn" aria-label="Perfil de usuário">
-        <i class="bi bi-person-fill"></i>
-      </button>
+      <div class="account-menu-wrapper">
+        <button
+          class="user-avatar-btn"
+          type="button"
+          aria-label="Perfil de usuário"
+          [attr.aria-expanded]="accountMenuOpen()"
+          (click)="toggleAccountMenu()"
+        >
+          <i class="bi bi-person-fill"></i>
+        </button>
+
+        @if (accountMenuOpen()) {
+        <div class="account-menu-dropdown">
+          <span class="account-menu-email">{{ authService.currentUser()?.name || authService.currentUser()?.email }}</span>
+          <button type="button" class="account-menu-logout" (click)="logout()">
+            <i class="bi bi-box-arrow-right"></i> Sair
+          </button>
+        </div>
+        }
+      </div>
     </div>
   </div>
 </header>
@@ -85,6 +113,7 @@
 <!-- Mobile iOS Style Bottom Tab Bar -->
 <nav class="mobile-tab-bar" aria-label="Navegação mobile">
   <div class="tab-bar-container">
+    @if (authService.hasPermission('home.view')) {
     <a class="tab-item" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
       <div class="tab-icon-wrap">
         <i class="bi bi-house-door-fill tab-icon-active"></i>
@@ -92,7 +121,9 @@
       </div>
       <span class="tab-label">Início</span>
     </a>
+    }
 
+    @if (authService.hasPermission('movies.view')) {
     <a class="tab-item" routerLink="/movies" routerLinkActive="active">
       <div class="tab-icon-wrap">
         <i class="bi bi-film tab-icon-active"></i>
@@ -100,7 +131,9 @@
       </div>
       <span class="tab-label">Filmes</span>
     </a>
+    }
 
+    @if (authService.hasPermission('series.view')) {
     <a class="tab-item" routerLink="/series" routerLinkActive="active">
       <div class="tab-icon-wrap">
         <i class="bi bi-tv-fill tab-icon-active"></i>
@@ -108,7 +141,9 @@
       </div>
       <span class="tab-label">Séries</span>
     </a>
+    }
 
+    @if (authService.hasPermission('channels.view')) {
     <a class="tab-item" routerLink="/channels" routerLinkActive="active">
       <div class="tab-icon-wrap">
         <i class="bi bi-broadcast-pin tab-icon-active"></i>
@@ -116,7 +151,9 @@
       </div>
       <span class="tab-label">Canais</span>
     </a>
+    }
 
+    @if (authService.hasPermission('search')) {
     <button class="tab-item" type="button" (click)="toggleSearch()" [class.active]="searchOpen()">
       <div class="tab-icon-wrap">
         <i class="bi bi-search tab-icon-active"></i>
@@ -124,6 +161,7 @@
       </div>
       <span class="tab-label">Buscar</span>
     </button>
+    }
 
     <a class="tab-item" routerLink="/about" routerLinkActive="active">
       <div class="tab-icon-wrap">
@@ -188,4 +226,5 @@
     </div>
   </div>
 </div>
+}
 }
