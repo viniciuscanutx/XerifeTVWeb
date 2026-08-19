@@ -61,6 +61,11 @@ export const routes: Routes = [
     data: { permission: 'watch' },
   },
   {
+    path: 'assistir/:type/:id',
+    redirectTo: 'watch/:type/:id',
+    pathMatch: 'full',
+  },
+  {
     path: 'about',
     loadComponent: () => import('./pages/about/about').then((m) => m.About),
     title: 'CHELIFTV - Sobre',

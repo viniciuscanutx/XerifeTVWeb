@@ -247,14 +247,20 @@
   </div>
 
   @if (recommended().length > 0) {
-  <app-media-carousel title="Recomendados para você" icon="bi-collection-play" [items]="recommended()" />
+    @defer (on viewport) {
+      <app-media-carousel title="Recomendados para você" icon="bi-collection-play" [items]="recommended()" />
+    } @placeholder {
+      <div style="min-height: 200px;"></div>
+    }
   }
 
 </main>
 
-<app-video-player-modal [open]="playerOpen()" [src]="playerVideoUrl()" [loading]="resolvingVideo()"
-  [streamFormat]="playerStreamFormat()" [poster]="content.backdrop || content.poster" [title]="playerTitle()"
-  [startTime]="savedStartTime()" [hasNextEpisode]="hasNextEpisode()" (timeUpdate)="onTimeUpdate($event)"
-  (nextEpisode)="playNextEpisode()" (closed)="closePlayer()" (ended)="onVideoEnded()" />
+@defer (when playerOpen()) {
+  <app-video-player-modal [open]="playerOpen()" [src]="playerVideoUrl()" [loading]="resolvingVideo()"
+    [streamFormat]="playerStreamFormat()" [poster]="content.backdrop || content.poster" [title]="playerTitle()"
+    [startTime]="savedStartTime()" [hasNextEpisode]="hasNextEpisode()" (timeUpdate)="onTimeUpdate($event)"
+    (nextEpisode)="playNextEpisode()" (closed)="closePlayer()" (ended)="onVideoEnded()" />
+}
 
 }
