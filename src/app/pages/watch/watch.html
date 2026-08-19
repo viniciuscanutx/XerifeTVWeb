@@ -57,7 +57,7 @@
           @if (resolvingVideo()) {
           <i class="bi bi-hourglass-split"></i> Carregando vídeo...
           } @else {
-          <i class="bi bi-play-fill"></i> Reproduzir
+          <i class="bi bi-play-fill"></i> {{ playButtonLabel() }}
           }
         </button>
 
@@ -103,17 +103,15 @@
   <div class="content-overlay">
 
     @if (content.type === 'series') {
-    <div class="synopsis-card mb-4 episodes-card">
-      <div class="episodes-header">
-        <h3 class="synopsis-title mb-0">EPISÓDIOS</h3>
-
-        @if (seasonsList().length > 1) {
-        <select class="season-select" [value]="selectedSeason()" (change)="onSeasonChange($event)">
+    <section class="page-section episodes-section">
+      <div class="season-picker">
+        <select class="season-select" [value]="selectedSeason()" (change)="onSeasonChange($event)"
+          aria-label="Selecionar temporada">
           @for (s of seasonsList(); track s) {
           <option [value]="s">Temporada {{ s }}</option>
           }
         </select>
-        }
+        <i class="bi bi-chevron-down season-select__icon" aria-hidden="true"></i>
       </div>
 
       @if (loadingEpisodes()) {
@@ -127,54 +125,52 @@
       </div>
       }
       @else {
-      <div class="episodes-list">
-        @for (ep of paginatedEpisodes(); track ep.id || ep.number; let idx = $index) {
-        <div class="episode-item" (click)="playEpisode(ep)" tabindex="0" role="button">
-          <div class="episode-thumb-container">
-            <img class="episode-thumb" [src]="ep.bannerUrl || content.backdrop || content.poster" [alt]="ep.title" />
-            <div class="episode-play-overlay">
-              <i class="bi bi-play-fill"></i>
-            </div>
+      <div class="episodes-rail">
+        @for (ep of episodes(); track ep.id || ep.number; let idx = $index) {
+        <article class="episode-card" (click)="playEpisode(ep)" (keydown.enter)="playEpisode(ep)"
+          tabindex="0" role="button" [attr.aria-label]="episodeTag(ep, idx) + ' ' + ep.title">
+          <img class="episode-card__img" [src]="ep.bannerUrl || content.backdrop || content.poster" [alt]="ep.title"
+            loading="lazy" />
+          <div class="episode-card__scrim"></div>
+
+          @if (isEpisodeWatched(ep)) {
+          <span class="episode-card__watched" aria-label="Assistido">
+            <i class="bi bi-check-lg"></i>
+          </span>
+          }
+
+          <div class="episode-card__play">
+            <i class="bi bi-play-fill"></i>
           </div>
 
-          <div class="episode-info">
-            <div class="episode-header">
-              <span class="episode-number">E{{ ep.number ?? ((episodePage() - 1) * episodesPerPage + idx + 1) }}</span>
-              <h4 class="episode-title">{{ ep.title }}</h4>
+          <div class="episode-card__body">
+            <div class="episode-card__tags">
+              <span class="episode-card__tag">{{ episodeTag(ep, idx) }}</span>
               @if (ep.highQuality) {
               <span class="badge-4k">4K</span>
               }
             </div>
-            @if (ep.duration) {
-            <span class="episode-duration"><i class="bi bi-clock"></i> {{ ep.duration }}</span>
+
+            <h3 class="episode-card__title">{{ ep.title }}</h3>
+
+            @if (ep.overview) {
+            <p class="episode-card__overview">{{ ep.overview }}</p>
             }
+
+            <div class="episode-card__footer">
+              @if (ep.duration) {
+              <span class="episode-card__duration"><i class="bi bi-clock"></i> {{ ep.duration }}</span>
+              }
+              @if (formatEpisodeDate(ep.airDate); as airDate) {
+              <span class="episode-card__date">{{ airDate }}</span>
+              }
+            </div>
           </div>
-        </div>
+        </article>
         }
       </div>
-
-      @if (totalEpisodePages() > 1) {
-      <div class="episodes-pagination">
-        <button class="pagination-btn" [disabled]="episodePage() === 1" (click)="goToEpisodePage(episodePage() - 1)">
-          <i class="bi bi-chevron-left"></i> Anterior
-        </button>
-
-        <div class="pagination-pages">
-          @for (p of episodePageNumbers(); track p) {
-          <button class="page-num-btn" [class.active]="p === episodePage()" (click)="goToEpisodePage(p)">
-            {{ p }}
-          </button>
-          }
-        </div>
-
-        <button class="pagination-btn" [disabled]="episodePage() === totalEpisodePages()"
-          (click)="goToEpisodePage(episodePage() + 1)">
-          Próximo <i class="bi bi-chevron-right"></i>
-        </button>
-      </div>
       }
-      }
-    </div>
+    </section>
     }
 
     @if (parentalBadge(); as badge) {

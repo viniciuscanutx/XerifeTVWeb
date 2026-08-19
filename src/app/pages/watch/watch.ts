@@ -19,6 +19,8 @@ export interface EpisodeItem {
   season?: number;
   bannerUrl?: string;
   duration?: string;
+  overview?: string;
+  airDate?: string;
   videoResolverUrl?: string | null;
   alternativeVideoResolverUrl?: string | null;
   videoUrl?: string | null;
@@ -92,8 +94,6 @@ export class Watch implements OnDestroy {
   readonly episodes = signal<EpisodeItem[]>([]);
   readonly loadingEpisodes = signal<boolean>(false);
   readonly activeEpisode = signal<EpisodeItem | null>(null);
-  readonly episodePage = signal<number>(1);
-  readonly episodesPerPage = 10;
 
   readonly moreMenuOpen = signal<boolean>(false);
   readonly detailsExpanded = signal<boolean>(false);
@@ -115,19 +115,25 @@ export class Watch implements OnDestroy {
     return Array.from({ length: seasons }, (_, i) => i + 1);
   });
 
-  readonly totalEpisodePages = computed(() => {
-    return Math.ceil(this.episodes().length / this.episodesPerPage) || 1;
+  /** Saved playback position for this title, used to resume and to flag watched episodes. */
+  readonly resumeProgress = computed(() => {
+    const item = this.item();
+    return item ? this.watchProgress.getItemProgress(item.id) : null;
   });
 
-  readonly episodePageNumbers = computed<number[]>(() => {
-    const total = this.totalEpisodePages();
-    return Array.from({ length: total }, (_, i) => i + 1);
-  });
+  /** Series show the episode to resume on the play button, movies just play. */
+  readonly playButtonLabel = computed(() => {
+    if (this.item()?.type !== 'series') return 'Reproduzir';
 
-  readonly paginatedEpisodes = computed(() => {
-    const page = this.episodePage();
-    const start = (page - 1) * this.episodesPerPage;
-    return this.episodes().slice(start, start + this.episodesPerPage);
+    const progress = this.resumeProgress();
+    if (progress?.episodeNumber) {
+      return `A Seguir • T${progress.season ?? 1}E${progress.episodeNumber}`;
+    }
+
+    const first = this.episodes()[0];
+    if (first) return `A Seguir • T${first.season ?? this.selectedSeason()}E${first.number ?? 1}`;
+
+    return 'Reproduzir';
   });
 
   readonly hasDubbedVersion = computed(() => {
@@ -260,7 +266,9 @@ export class Watch implements OnDestroy {
 
     if (item.type === 'series') {
       const epList = this.episodes();
-      const ep = this.activeEpisode() || epList[0];
+      const resumeId = this.resumeProgress()?.episodeId;
+      const resumeEp = resumeId ? epList.find((e) => e.id === resumeId) : null;
+      const ep = this.activeEpisode() || resumeEp || epList[0];
       if (ep) {
         this.playEpisode(ep);
       } else {
@@ -356,7 +364,6 @@ export class Watch implements OnDestroy {
 
   selectSeason(season: number): void {
     this.selectedSeason.set(season);
-    this.episodePage.set(1);
     const seriesId = this.item()?.id;
     if (seriesId) {
       this.loadEpisodes(seriesId, season);
@@ -366,12 +373,6 @@ export class Watch implements OnDestroy {
   onSeasonChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.selectSeason(Number(value));
-  }
-
-  goToEpisodePage(page: number): void {
-    if (page >= 1 && page <= this.totalEpisodePages()) {
-      this.episodePage.set(page);
-    }
   }
 
   playEpisode(ep: EpisodeItem): void {
@@ -428,28 +429,10 @@ export class Watch implements OnDestroy {
       if (currentSeason < seasons) {
         const nextSeason = currentSeason + 1;
         this.selectedSeason.set(nextSeason);
-        this.episodePage.set(1);
         this.loadingEpisodes.set(true);
         this.api.getEpisodes(item.id, nextSeason).pipe(catchError(() => of([]))).subscribe((res: any) => {
           this.loadingEpisodes.set(false);
-          let rawList: any[] = [];
-          if (Array.isArray(res)) rawList = res;
-          else if (res?.episodes && Array.isArray(res.episodes)) rawList = res.episodes;
-          else if (res?.items && Array.isArray(res.items)) rawList = res.items;
-
-          const nextList: EpisodeItem[] = rawList.map((e: any, index: number) => ({
-            id: e.id || `ep-${index}`,
-            title: e.title || `Episódio ${e.number ?? index + 1}`,
-            number: e.number ?? index + 1,
-            season: e.season ?? nextSeason,
-            bannerUrl: e.bannerURL || e.bannerUrl,
-            duration: e.duration ? (typeof e.duration === 'number' ? `${Math.floor(e.duration / 60)} min` : String(e.duration)) : e.durationHHmm,
-            videoResolverUrl: e.videoResolverURL || e.urlResolverPath || e.video?.url,
-            alternativeVideoResolverUrl: e.alternativeVideoResolverURL || e.alternativeVideoResolverUrl,
-            videoUrl: e.video?.url,
-            streamFormat: e.video?.streamFormat || 'mp4',
-            highQuality: e.highQuality ?? e.HighQuality ?? false,
-          }));
+          const nextList = this.mapEpisodes(res, nextSeason);
 
           this.episodes.set(nextList);
           if (nextList.length > 0) {
@@ -547,6 +530,33 @@ export class Watch implements OnDestroy {
     this.item.update((curr) => (curr ? { ...curr, logoUrl: null } : curr));
   }
 
+  /**
+   * Only the resume point is stored per title, so everything before it counts as watched.
+   */
+  isEpisodeWatched(ep: EpisodeItem): boolean {
+    const progress = this.resumeProgress();
+    if (!progress?.episodeNumber) return false;
+
+    const progressSeason = progress.season ?? 1;
+    const episodeSeason = ep.season ?? this.selectedSeason();
+    if (episodeSeason !== progressSeason) return episodeSeason < progressSeason;
+
+    return (ep.number ?? 0) < progress.episodeNumber;
+  }
+
+  episodeTag(ep: EpisodeItem, index: number): string {
+    return `T${ep.season ?? this.selectedSeason()}E${ep.number ?? index + 1}`;
+  }
+
+  formatEpisodeDate(value?: string): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+
+    const month = new Intl.DateTimeFormat('pt-BR', { month: 'long' }).format(date);
+    return `${date.getFullYear()} ${capitalizeFirstLetter(month)} ${date.getDate()}`;
+  }
+
   /** Hero logo plus the origin fields shown in the details section. */
   private mapTitleDetails(raw: any): Pick<WatchItem, 'logoUrl' | 'countryName' | 'originalLanguageName'> {
     return {
@@ -628,37 +638,43 @@ export class Watch implements OnDestroy {
     });
   }
 
+  /** The episodes endpoint has shown up as a bare array, {episodes} and {items}. */
+  private mapEpisodes(res: any, season: number): EpisodeItem[] {
+    let rawList: any[] = [];
+    if (Array.isArray(res)) {
+      rawList = res;
+    } else if (res?.episodes && Array.isArray(res.episodes)) {
+      rawList = res.episodes;
+    } else if (res?.items && Array.isArray(res.items)) {
+      rawList = res.items;
+    }
+
+    return rawList.map((ep: any, index: number) => ({
+      id: ep.id || `ep-${index}`,
+      title: ep.title || `Episódio ${ep.number ?? index + 1}`,
+      number: ep.number ?? index + 1,
+      season: ep.season ?? season,
+      bannerUrl: ep.bannerURL || ep.bannerUrl,
+      duration: ep.duration ? (typeof ep.duration === 'number' ? `${Math.floor(ep.duration / 60)} min` : String(ep.duration)) : ep.durationHHmm,
+      overview: ep.synopsis || ep.overview || ep.description,
+      airDate: ep.airDate || ep.releaseDate || ep.firstAirDate,
+      videoResolverUrl: ep.videoResolverURL || ep.urlResolverPath || ep.video?.url,
+      alternativeVideoResolverUrl: ep.alternativeVideoResolverURL || ep.alternativeVideoResolverUrl,
+      videoUrl: ep.video?.url,
+      streamFormat: ep.video?.streamFormat || 'mp4',
+      highQuality: ep.highQuality ?? ep.HighQuality ?? false,
+    }));
+  }
+
   private loadEpisodes(seriesId: string, season: number): void {
     this.loadingEpisodes.set(true);
     this.api.getEpisodes(seriesId, season).pipe(
       catchError(() => of([])),
     ).subscribe((res: any) => {
       this.loadingEpisodes.set(false);
-      let rawList: any[] = [];
-      if (Array.isArray(res)) {
-        rawList = res;
-      } else if (res?.episodes && Array.isArray(res.episodes)) {
-        rawList = res.episodes;
-      } else if (res?.items && Array.isArray(res.items)) {
-        rawList = res.items;
-      }
-
-      const list: EpisodeItem[] = rawList.map((ep: any, index: number) => ({
-        id: ep.id || `ep-${index}`,
-        title: ep.title || `Episódio ${ep.number ?? index + 1}`,
-        number: ep.number ?? index + 1,
-        season: ep.season ?? season,
-        bannerUrl: ep.bannerURL || ep.bannerUrl,
-        duration: ep.duration ? (typeof ep.duration === 'number' ? `${Math.floor(ep.duration / 60)} min` : String(ep.duration)) : ep.durationHHmm,
-        videoResolverUrl: ep.videoResolverURL || ep.urlResolverPath || ep.video?.url,
-        alternativeVideoResolverUrl: ep.alternativeVideoResolverURL || ep.alternativeVideoResolverUrl,
-        videoUrl: ep.video?.url,
-        streamFormat: ep.video?.streamFormat || 'mp4',
-        highQuality: ep.highQuality ?? ep.HighQuality ?? false,
-      }));
+      const list = this.mapEpisodes(res, season);
 
       this.episodes.set(list);
-      this.episodePage.set(1);
 
       if (this.autoPlayRequested()) {
         this.autoPlayRequested.set(false);
