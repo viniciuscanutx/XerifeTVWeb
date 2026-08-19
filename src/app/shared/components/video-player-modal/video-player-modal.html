@@ -23,6 +23,11 @@
             (nextEpisode)="nextEpisode.emit()"
             (ended)="ended.emit()"
           />
+        } @else {
+          <div class="vpm__loading" role="status" aria-live="polite">
+            <div class="spinner-border text-light" aria-hidden="true"></div>
+            <span>Carregando vídeo...</span>
+          </div>
         }
       </div>
     </div>

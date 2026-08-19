@@ -92,7 +92,7 @@
   }
 </main>
 
-<app-video-player-modal [open]="playerOpen()" [src]="streamUrl()" [streamFormat]="streamFormat()"
+<app-video-player-modal [open]="playerOpen()" [src]="streamUrl()" [loading]="resolvingStream()" [streamFormat]="streamFormat()"
   [poster]="activeChannel()?.logoUrl || activeChannel()?.logoURL || null"
   [title]="activeChannel()?.title ? activeChannel()!.title + ' (AO VIVO)' : 'Canal Ao Vivo'" [startTime]="0"
   [hasNextEpisode]="false" (closed)="closePlayer()" />

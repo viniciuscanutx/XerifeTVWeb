@@ -22,6 +22,7 @@ import { VideoPlayer } from '../video-player/video-player';
 export class VideoPlayerModal implements OnDestroy {
   readonly open = input<boolean>(false);
   readonly src = input<string | null>(null);
+  readonly loading = input<boolean>(false);
   readonly streamFormat = input<string>('mp4');
   readonly poster = input<string | null>(null);
   readonly title = input<string>('');
@@ -38,7 +39,7 @@ export class VideoPlayerModal implements OnDestroy {
     if (e.key === 'Escape' && this.open()) this.close();
   };
 
-  readonly isOpen = computed(() => this.open() && !!this.src());
+  readonly isOpen = computed(() => this.open() && (!!this.src() || this.loading()));
 
   constructor() {
     afterNextRender(() => {

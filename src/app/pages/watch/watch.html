@@ -15,75 +15,92 @@
 
     <img class="hero-image" [src]="content.backdrop" [alt]="content.poster" />
     <div class="hero-gradient"></div>
+    <div class="hero-gradient-side"></div>
+
+    <div class="hero-content">
+
+      @if (content.logoUrl) {
+      <img class="title-logo" [src]="content.logoUrl" [alt]="content.title" (error)="onLogoError()" />
+      } @else {
+      <h1 class="title-fallback">{{ content.title }}</h1>
+      }
+
+      <div class="meta-primary">
+        <span>{{ content.year }}</span>
+
+        @if (content.type === 'movie' && content.duration) {
+        <span>{{ content.duration }}</span>
+        }
+        @if (content.type === 'series') {
+        <span>{{ seasonsLabel() }}</span>
+        }
+
+        <span class="meta-rating">
+          <i class="bi bi-star-fill"></i> {{ content.rating.toFixed(1) }}
+        </span>
+
+        @if (isHighQuality()) {
+        <span class="meta-4k">4K</span>
+        }
+      </div>
+
+      @if (genresLabel()) {
+      <p class="meta-genres">{{ genresLabel() }}</p>
+      }
+
+      @if (content.overview) {
+      <p class="synopsis-hero">{{ content.overview }}</p>
+      }
+
+      <div class="action-buttons-hero">
+        <button class="btn-reproduzir" (click)="openPlayer()" [disabled]="resolvingVideo()">
+          @if (resolvingVideo()) {
+          <i class="bi bi-hourglass-split"></i> Carregando vídeo...
+          } @else {
+          <i class="bi bi-play-fill"></i> Reproduzir
+          }
+        </button>
+
+        <div class="more-wrapper">
+          <button class="btn-more" type="button" (click)="toggleMoreMenu()" [attr.aria-expanded]="moreMenuOpen()"
+            aria-label="Mais opções">
+            <i class="bi bi-three-dots"></i>
+          </button>
+
+          @if (moreMenuOpen()) {
+          <div class="more-menu">
+            <button type="button" class="more-menu-item">
+              <i class="bi bi-download"></i> Download
+            </button>
+          </div>
+          }
+        </div>
+
+        @if (hasBothAudioVersions()) {
+        <div class="audio-selector">
+          <button type="button" class="audio-btn" [class.active]="selectedAudio() === 'dub'" (click)="setAudio('dub')">
+            <i class="bi bi-translate"></i> Dublado
+          </button>
+          <button type="button" class="audio-btn" [class.active]="selectedAudio() === 'sub'" (click)="setAudio('sub')">
+            <i class="bi bi-chat-square-text-fill"></i> Legendado
+          </button>
+        </div>
+        } @else if (hasDubbedVersion()) {
+        <div class="audio-badge-single">
+          <i class="bi bi-translate"></i> Dublado
+        </div>
+        } @else if (hasSubtitledVersion()) {
+        <div class="audio-badge-single">
+          <i class="bi bi-chat-square-text-fill"></i> Legendado
+        </div>
+        }
+      </div>
+
+    </div>
 
   </div>
 
   <div class="content-overlay">
-
-    <div class="tags-row">
-
-      <span class="tag tag-rating">
-        <i class="bi bi-star-fill"></i> {{ content.rating.toFixed(1) }}
-      </span>
-
-      @if (content.duration) { <span class="tag">{{ content.duration }}</span> }
-
-      @if (isHighQuality()) {
-        <span class="tag tag-4k">4K</span>
-      }
-
-    </div>
-
-    <h1 class="main-title">{{ content.title }}</h1>
-
-    @if (hasBothAudioVersions()) {
-    <div class="audio-selector-container">
-      <div class="audio-selector">
-        <button
-          type="button"
-          class="audio-btn"
-          [class.active]="selectedAudio() === 'dub'"
-          (click)="setAudio('dub')"
-        >
-          <i class="bi bi-translate"></i> Dublado
-        </button>
-        <button
-          type="button"
-          class="audio-btn"
-          [class.active]="selectedAudio() === 'sub'"
-          (click)="setAudio('sub')"
-        >
-          <i class="bi bi-chat-square-text-fill"></i> Legendado
-        </button>
-      </div>
-    </div>
-    } @else if (hasDubbedVersion()) {
-    <div class="audio-selector-container">
-      <div class="audio-badge-single">
-        <i class="bi bi-translate"></i> Dublado
-      </div>
-    </div>
-    } @else if (hasSubtitledVersion()) {
-    <div class="audio-selector-container">
-      <div class="audio-badge-single">
-        <i class="bi bi-chat-square-text-fill"></i> Legendado
-      </div>
-    </div>
-    }
-
-    <div class="action-buttons">
-      <button class="btn-primary" (click)="openPlayer()" [disabled]="resolvingVideo()">
-        @if (resolvingVideo()) {
-        <i class="bi bi-hourglass-split"></i> Carregando vídeo...
-        } @else {
-        <i class="bi bi-play-fill"></i> Assistir
-        }
-      </button>
-
-      <button class="btn-secondary">
-        <i class="bi bi-download"></i> Download
-      </button>
-    </div>
 
     @if (content.type === 'series') {
     <div class="synopsis-card mb-4 episodes-card">
@@ -125,7 +142,7 @@
               <span class="episode-number">E{{ ep.number ?? ((episodePage() - 1) * episodesPerPage + idx + 1) }}</span>
               <h4 class="episode-title">{{ ep.title }}</h4>
               @if (ep.highQuality) {
-                <span class="badge-4k">4K</span>
+              <span class="badge-4k">4K</span>
               }
             </div>
             @if (ep.duration) {
@@ -138,31 +155,20 @@
 
       @if (totalEpisodePages() > 1) {
       <div class="episodes-pagination">
-        <button
-          class="pagination-btn"
-          [disabled]="episodePage() === 1"
-          (click)="goToEpisodePage(episodePage() - 1)"
-        >
+        <button class="pagination-btn" [disabled]="episodePage() === 1" (click)="goToEpisodePage(episodePage() - 1)">
           <i class="bi bi-chevron-left"></i> Anterior
         </button>
 
         <div class="pagination-pages">
           @for (p of episodePageNumbers(); track p) {
-          <button
-            class="page-num-btn"
-            [class.active]="p === episodePage()"
-            (click)="goToEpisodePage(p)"
-          >
+          <button class="page-num-btn" [class.active]="p === episodePage()" (click)="goToEpisodePage(p)">
             {{ p }}
           </button>
           }
         </div>
 
-        <button
-          class="pagination-btn"
-          [disabled]="episodePage() === totalEpisodePages()"
-          (click)="goToEpisodePage(episodePage() + 1)"
-        >
+        <button class="pagination-btn" [disabled]="episodePage() === totalEpisodePages()"
+          (click)="goToEpisodePage(episodePage() + 1)">
           Próximo <i class="bi bi-chevron-right"></i>
         </button>
       </div>
@@ -171,35 +177,72 @@
     </div>
     }
 
-    <div class="synopsis-card mb-4">
-      <h3 class="synopsis-title">Indicação Parental</h3>
-
-      @if (parentalBadge(); as badge) {
+    @if (parentalBadge(); as badge) {
+    <section class="page-section">
+      <h2 class="section-title">Indicação Parental</h2>
       <div class="parental-badge-row">
         <span class="parental-badge" [style.color]="badge.color === '#000000' ? '#ffffff' : '#000000'"
           [style.background-color]="badge.bgColor">{{ badge.label }}</span>
         <span class="parental-description">{{ badge.description }}</span>
       </div>
-      } @else if (content.parentalRating) {
+    </section>
+    } @else if (content.parentalRating) {
+    <section class="page-section">
+      <h2 class="section-title">Indicação Parental</h2>
       <div class="genres-row">
         <span>{{ content.parentalRating }}</span>
       </div>
-      }
+    </section>
+    }
 
-      <h3 class="synopsis-title mt-4">GÊNEROS</h3>
+    <section class="page-section">
+      <button type="button" class="details-toggle" (click)="toggleDetails()" [attr.aria-expanded]="detailsExpanded()">
+        <h2 class="section-title">{{ content.type === 'series' ? 'Detalhes da Série' : 'Detalhes do Filme' }}</h2>
+        <i class="bi" [class.bi-chevron-down]="!detailsExpanded()" [class.bi-chevron-up]="detailsExpanded()"></i>
+      </button>
 
-      <div class="genres-row">
-        @for (genre of content.genres; track genre) {
-        <span class="tag">{{ capitalizeFirstLetter(genre) }}</span>
+      @if (detailsExpanded()) {
+      <div class="details-list">
+        <div class="details-row">
+          <span class="details-label">Informações de Lançamento</span>
+          <span class="details-value">{{ content.year }}</span>
+        </div>
+
+        @if (content.type === 'movie' && content.duration) {
+        <div class="details-row">
+          <span class="details-label">Duração</span>
+          <span class="details-value">{{ content.duration }}</span>
+        </div>
+        } @else if (content.type === 'series') {
+        <div class="details-row">
+          <span class="details-label">Temporadas</span>
+          <span class="details-value">{{ seasonsLabel() }}</span>
+        </div>
+        }
+
+        @if (content.countryName) {
+        <div class="details-row">
+          <span class="details-label">País de Origem</span>
+          <span class="details-value">{{ content.countryName }}</span>
+        </div>
+        }
+
+        @if (content.originalLanguageName) {
+        <div class="details-row">
+          <span class="details-label">Idioma Original</span>
+          <span class="details-value">{{ content.originalLanguageName }}</span>
+        </div>
+        }
+
+        @if (genresLabel()) {
+        <div class="details-row">
+          <span class="details-label">Gêneros</span>
+          <span class="details-value">{{ genresLabel() }}</span>
+        </div>
         }
       </div>
-    </div>
-
-    <div class="synopsis-card">
-      <h3 class="synopsis-title">SINOPSE</h3>
-
-      <p class="synopsis-text">{{ content.overview }}</p>
-    </div>
+      }
+    </section>
 
   </div>
 
@@ -209,7 +252,9 @@
 
 </main>
 
-<app-video-player-modal [open]="playerOpen()" [src]="playerVideoUrl()" [streamFormat]="playerStreamFormat()"
-  [poster]="content.backdrop || content.poster" [title]="playerTitle()" [startTime]="savedStartTime()" [hasNextEpisode]="hasNextEpisode()" (timeUpdate)="onTimeUpdate($event)" (nextEpisode)="playNextEpisode()" (closed)="closePlayer()" (ended)="onVideoEnded()" />
+<app-video-player-modal [open]="playerOpen()" [src]="playerVideoUrl()" [loading]="resolvingVideo()"
+  [streamFormat]="playerStreamFormat()" [poster]="content.backdrop || content.poster" [title]="playerTitle()"
+  [startTime]="savedStartTime()" [hasNextEpisode]="hasNextEpisode()" (timeUpdate)="onTimeUpdate($event)"
+  (nextEpisode)="playNextEpisode()" (closed)="closePlayer()" (ended)="onVideoEnded()" />
 
 }

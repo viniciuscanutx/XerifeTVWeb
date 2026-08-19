@@ -35,6 +35,9 @@ export interface WatchItem extends MediaItem {
   streamFormat?: string;
   totalSeasons?: number;
   highQuality?: boolean;
+  logoUrl?: string | null;
+  originalLanguageName?: string | null;
+  countryName?: string | null;
 }
 
 interface ParentalBadge {
@@ -92,7 +95,20 @@ export class Watch implements OnDestroy {
   readonly episodePage = signal<number>(1);
   readonly episodesPerPage = 10;
 
+  readonly moreMenuOpen = signal<boolean>(false);
+  readonly detailsExpanded = signal<boolean>(false);
+
   readonly contentLabel = computed(() => this.item()?.type === 'series' ? 'Série' : 'Filme');
+
+  readonly genresLabel = computed(() => {
+    const genres = this.item()?.genres ?? [];
+    return genres.map((g) => this.capitalizeFirstLetter(g)).join(' • ');
+  });
+
+  readonly seasonsLabel = computed(() => {
+    const total = this.item()?.totalSeasons ?? 1;
+    return `${total} Temporada${total > 1 ? 's' : ''}`;
+  });
 
   readonly seasonsList = computed<number[]>(() => {
     const seasons = this.item()?.totalSeasons || 1;
@@ -176,9 +192,9 @@ export class Watch implements OnDestroy {
     const ep = this.activeEpisode();
     const item = this.item();
     if (item?.type === 'series' && ep) {
-      return ep.videoUrl || ep.videoResolverUrl || null;
+      return ep.videoUrl || null;
     }
-    return item?.videoUrl || item?.videoResolverUrl || null;
+    return item?.videoUrl || null;
   });
 
   readonly playerStreamFormat = computed(() => {
@@ -221,12 +237,9 @@ export class Watch implements OnDestroy {
     if (item?.type === 'series') {
       const ep = this.activeEpisode() || this.episodes()[0];
       if (ep) {
-        const resetEp = { ...ep, videoUrl: null };
-        this.activeEpisode.set(resetEp);
-        this.loadEpisodeVideo(resetEp);
+        this.loadEpisodeVideo(ep);
       }
     } else if (item) {
-      this.item.update((curr) => (curr ? { ...curr, videoUrl: null } : curr));
       const resolverUrl = this.getActiveResolverUrl(item);
       if (resolverUrl) {
         this.loadVideo(resolverUrl);
@@ -470,12 +483,14 @@ export class Watch implements OnDestroy {
         return params.get('type') === 'series'
           ? this.api.getSeriesById(id).pipe(map((series: any) => ({
               ...seriesToMediaItem(series),
+              ...this.mapTitleDetails(series),
               parentalRating: series.parentalRating ? String(series.parentalRating) : undefined,
               totalSeasons: Number(series.totalSeasons || series.numberSeasons) || 1,
               highQuality: series.highQuality ?? series.HighQuality ?? false,
             })))
           : this.api.getMovieById(id).pipe(map((movie: any) => ({
               ...toMediaItem(movie),
+              ...this.mapTitleDetails(movie),
               duration: movie.duration || movie.durationHHmm,
               parentalRating: movie.parentalRating ? String(movie.parentalRating) : undefined,
               videoResolverUrl: movie.videoResolverURL || movie.urlResolverPath,
@@ -517,6 +532,46 @@ export class Watch implements OnDestroy {
         }
       }
     });
+  }
+
+  toggleMoreMenu(): void {
+    this.moreMenuOpen.update((open) => !open);
+  }
+
+  toggleDetails(): void {
+    this.detailsExpanded.update((open) => !open);
+  }
+
+  /** Falls back to the plain text title when the logo image cannot be loaded. */
+  onLogoError(): void {
+    this.item.update((curr) => (curr ? { ...curr, logoUrl: null } : curr));
+  }
+
+  /** Hero logo plus the origin fields shown in the details section. */
+  private mapTitleDetails(raw: any): Pick<WatchItem, 'logoUrl' | 'countryName' | 'originalLanguageName'> {
+    return {
+      logoUrl: this.api.resolveMediaUrl(raw.logoURL || raw.logoUrl),
+      countryName: this.toDisplayName('region', raw.countryOfOrigin || raw.CountryOfOrigin),
+      originalLanguageName: this.toDisplayName('language', raw.originalLanguage || raw.OriginalLanguage),
+    };
+  }
+
+  /** Turns ISO codes ("US", "en") into readable names, leaving plain names untouched. */
+  private toDisplayName(type: 'region' | 'language', value?: string | null): string | null {
+    const raw = value?.trim();
+    if (!raw) return null;
+
+    const isRegionCode = type === 'region' && /^[a-z]{2}$/i.test(raw);
+    const isLanguageCode = type === 'language' && /^[a-z]{2,3}$/i.test(raw);
+    if (!isRegionCode && !isLanguageCode) return raw;
+
+    try {
+      const code = type === 'region' ? raw.toUpperCase() : raw.toLowerCase();
+      const name = new Intl.DisplayNames(['pt-BR'], { type }).of(code);
+      return name ? capitalizeFirstLetter(name) : raw;
+    } catch {
+      return raw;
+    }
   }
 
   private loadRecommended(item: WatchItem): void {

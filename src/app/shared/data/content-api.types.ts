@@ -4,12 +4,18 @@ export interface MovieResponse {
   categories: string[];
   posterURL: string;
   bannerURL: string;
+  /** Transparent title wordmark shown over the hero banner. */
+  logoURL?: string;
   parentalRating: string;
   releaseYear: number;
   synopsis: string;
   ratingImdb: number;
   duration: string;
   durationSeconds: number;
+  /** ISO 3166-1 country code (ex: "US") or an already readable name. */
+  countryOfOrigin?: string;
+  /** ISO 639-1 language code (ex: "en") or an already readable name. */
+  originalLanguage?: string;
   videoResolverURL: string | null;
   alternativeVideoResolverURL?: string | null;
   subtitleURL?: string;
@@ -23,12 +29,18 @@ export interface SeriesSummaryResponse {
   categories: string[];
   posterURL: string;
   bannerURL: string;
+  /** Transparent title wordmark shown over the hero banner. */
+  logoURL?: string;
   parentalRating: string;
   releaseYear: number;
   ratingImdb: number;
   synopsis: string;
   totalSeasons: number;
   hasSubtitles: boolean;
+  /** ISO 3166-1 country code (ex: "US") or an already readable name. */
+  countryOfOrigin?: string;
+  /** ISO 639-1 language code (ex: "en") or an already readable name. */
+  originalLanguage?: string;
   highQuality?: boolean;
 }
 
