@@ -125,8 +125,16 @@
       </div>
       }
       @else {
-      <div class="episodes-rail">
-        @for (ep of episodes(); track ep.id || ep.number; let idx = $index) {
+      <div class="episodes-rail-wrapper">
+        @if (canScrollEpisodesLeft()) {
+        <button class="episodes-arrow episodes-arrow--left" type="button" (click)="scrollEpisodesLeft()"
+          aria-label="Episódios anteriores">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        }
+
+        <div class="episodes-rail" #episodesRail>
+          @for (ep of episodes(); track ep.id || ep.number; let idx = $index) {
         <article class="episode-card" (click)="playEpisode(ep)" (keydown.enter)="playEpisode(ep)"
           tabindex="0" role="button" [attr.aria-label]="episodeTag(ep, idx) + ' ' + ep.title">
           <img class="episode-card__img" [src]="ep.bannerUrl || content.backdrop || content.poster" [alt]="ep.title"
@@ -167,6 +175,14 @@
             </div>
           </div>
         </article>
+          }
+        </div>
+
+        @if (canScrollEpisodesRight()) {
+        <button class="episodes-arrow episodes-arrow--right" type="button" (click)="scrollEpisodesRight()"
+          aria-label="Próximos episódios">
+          <i class="bi bi-chevron-right"></i>
+        </button>
         }
       </div>
       }

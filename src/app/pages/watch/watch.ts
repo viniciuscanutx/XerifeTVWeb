@@ -1,4 +1,16 @@
-import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  Injector,
+  OnDestroy,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { MediaItem } from '../../shared/components/media-card/media-card';
@@ -64,12 +76,13 @@ const PARENTAL_BADGES: Record<string, ParentalBadge> = {
   templateUrl: './watch.html',
   styleUrl: './watch.css',
 })
-export class Watch implements OnDestroy {
+export class Watch implements AfterViewInit, OnDestroy {
   readonly capitalizeFirstLetter = capitalizeFirstLetter;
 
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(ContentApiService);
   private readonly watchProgress = inject(WatchProgressService);
+  private readonly injector = inject(Injector);
 
   private lastPlayback: { currentTime: number; duration: number } | null = null;
   private lastProgressSaveAt = 0;
@@ -94,6 +107,11 @@ export class Watch implements OnDestroy {
   readonly episodes = signal<EpisodeItem[]>([]);
   readonly loadingEpisodes = signal<boolean>(false);
   readonly activeEpisode = signal<EpisodeItem | null>(null);
+
+  private readonly episodesRailRef = viewChild<ElementRef<HTMLElement>>('episodesRail');
+  private episodesRailEl: HTMLElement | null = null;
+  readonly canScrollEpisodesLeft = signal<boolean>(false);
+  readonly canScrollEpisodesRight = signal<boolean>(false);
 
   readonly moreMenuOpen = signal<boolean>(false);
   readonly detailsExpanded = signal<boolean>(false);
@@ -301,8 +319,47 @@ export class Watch implements OnDestroy {
     this.playerOpen.set(false);
   }
 
+  ngAfterViewInit(): void {
+    this.updateEpisodesScrollState();
+  }
+
   ngOnDestroy(): void {
     this.flushProgress();
+    this.detachEpisodesRail();
+  }
+
+  private attachEpisodesRail(el: HTMLElement | null): void {
+    if (this.episodesRailEl === el) return;
+    this.detachEpisodesRail();
+    this.episodesRailEl = el;
+    el?.addEventListener('scroll', this.updateEpisodesScrollState, { passive: true });
+  }
+
+  private detachEpisodesRail(): void {
+    this.episodesRailEl?.removeEventListener('scroll', this.updateEpisodesScrollState);
+    this.episodesRailEl = null;
+  }
+
+  private readonly updateEpisodesScrollState = (): void => {
+    const el = this.episodesRailRef()?.nativeElement;
+    if (!el) {
+      this.canScrollEpisodesLeft.set(false);
+      this.canScrollEpisodesRight.set(false);
+      return;
+    }
+    const max = el.scrollWidth - el.clientWidth - 2;
+    this.canScrollEpisodesLeft.set(el.scrollLeft > 4);
+    this.canScrollEpisodesRight.set(el.scrollLeft < max);
+  };
+
+  scrollEpisodesLeft(): void {
+    const el = this.episodesRailRef()?.nativeElement;
+    el?.scrollBy({ left: -el.clientWidth * 0.85, behavior: 'smooth' });
+  }
+
+  scrollEpisodesRight(): void {
+    const el = this.episodesRailRef()?.nativeElement;
+    el?.scrollBy({ left: el.clientWidth * 0.85, behavior: 'smooth' });
   }
 
   onTimeUpdate(evt: { currentTime: number; duration: number }): void {
@@ -444,6 +501,13 @@ export class Watch implements OnDestroy {
   }
 
   constructor() {
+    effect(() => {
+      this.episodes();
+      const el = this.episodesRailRef()?.nativeElement ?? null;
+      this.attachEpisodesRail(el);
+      afterNextRender(() => this.updateEpisodesScrollState(), { injector: this.injector });
+    });
+
     this.route.queryParamMap.subscribe((qParams) => {
       if (qParams.get('autoplay') === 'true') {
         this.autoPlayRequested.set(true);
