@@ -137,17 +137,15 @@ app-video-player,
   }
 }
 
-/* ====== MOBILE (retrato) + QUALQUER VIEWPORT BAIXO EM PAISAGEM ====== */
-@media (max-width: 700px), (orientation: landscape) and (max-height: 560px) {
+/* ====== MOBILE ====== */
+@media (max-width: 700px) {
   .vpm {
     padding: 0;
     align-items: stretch;
-    overflow: hidden;
   }
   .vpm__dialog {
-    max-width: none;
+    max-width: 100%;
     width: 100vw;
-    width: 100dvw;
     height: 100vh;
     height: 100dvh;
     border-radius: 0;
@@ -159,8 +157,6 @@ app-video-player,
     background: #0a0a0c;
     border-bottom: 1px solid rgba(255, 255, 255, .08);
     padding-top: max(.6rem, env(safe-area-inset-top));
-    padding-left: max(.8rem, env(safe-area-inset-left));
-    padding-right: max(.8rem, env(safe-area-inset-right));
     flex-shrink: 0;
     height: 48px;
   }
@@ -168,29 +164,15 @@ app-video-player,
   .vpm__close { width: 32px; height: 32px; font-size: .85rem; }
   .vpm__player-wrapper {
     flex: 1 1 auto;
-    min-height: 0;
     width: 100%;
-    height: auto;
+    height: calc(100% - 48px);
     max-height: none;
-    max-width: none;
     aspect-ratio: unset;
   }
   app-video-player,
   .vpm__loading {
-    height: 100%;
     max-height: none;
     max-width: none;
     aspect-ratio: unset;
   }
-}
-
-/* ====== PAISAGEM BAIXA: header compacto para sobrar altura ao vídeo ====== */
-@media (orientation: landscape) and (max-height: 560px) {
-  .vpm__header {
-    height: 40px;
-    padding-top: .35rem;
-    padding-bottom: .35rem;
-  }
-  .vpm__title { font-size: .8rem; }
-  .vpm__close { width: 28px; height: 28px; font-size: .78rem; }
 }
