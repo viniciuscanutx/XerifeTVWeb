@@ -264,6 +264,7 @@
   flex-wrap: nowrap;
   gap: 16px;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   padding: 6px 4px 14px 0;
   scroll-behavior: smooth;
   scrollbar-width: none;

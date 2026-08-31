@@ -530,6 +530,7 @@
   display: flex;
   gap: 20px;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scroll-padding-left: var(--hero-gutter);
   padding: 4px var(--hero-gutter) 18px;

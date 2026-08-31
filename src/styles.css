@@ -19,6 +19,14 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  /* Impede o "balanço" (rubber-band overscroll) e qualquer arrasto
+     horizontal do documento no iOS/Safari mobile. */
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
   background-color: #0a0a0c;
