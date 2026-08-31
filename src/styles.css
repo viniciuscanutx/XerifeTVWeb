@@ -21,13 +21,14 @@
 
 html,
 body {
-  /* Impede o "balanço" (rubber-band overscroll) e qualquer arrasto
-     horizontal do documento no iOS/Safari mobile. */
-  overflow-x: hidden;
+  /* Impede o "balanço" (rubber-band overscroll) do documento no iOS/Safari. */
   overscroll-behavior: none;
 }
 
 body {
+  /* `clip` corta o arrasto horizontal SEM virar container de scroll,
+     então não quebra a roda do mouse/scroll vertical no desktop. */
+  overflow-x: clip;
   margin: 0;
   background-color: #0a0a0c;
   color: #f8f9fa;
