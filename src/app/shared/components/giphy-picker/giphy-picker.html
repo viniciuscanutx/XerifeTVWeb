@@ -1,0 +1,108 @@
+<dialog #dialog aria-labelledby="giphy-title" (cancel)="cancel($event)">
+  <header>
+    <div>
+      <h2 id="giphy-title">Escolher GIF de perfil</h2>
+      <p>Encontre um GIF que combine com você.</p>
+    </div>
+    <button type="button" class="close-button" aria-label="Fechar" (click)="dismiss()">
+      <i class="bi bi-x-lg" aria-hidden="true"></i>
+    </button>
+  </header>
+  @if (giphy.configured) {
+    <form class="search-form" (ngSubmit)="search()">
+      <label class="visually-hidden" for="giphy-search">Buscar GIFs</label>
+      <input
+        id="giphy-search"
+        name="query"
+        type="search"
+        maxlength="50"
+        autocomplete="off"
+        autofocus
+        placeholder="Buscar GIFs no GIPHY"
+        [ngModel]="draft()"
+        (ngModelChange)="draft.set($event)"
+      />
+      <button type="submit">Buscar</button>
+    </form>
+    <div class="results-heading">
+      <h3>{{ query().trim() ? 'Resultados da busca' : 'Em destaque' }}</h3>
+      <a href="https://giphy.com" target="_blank" rel="noopener noreferrer"
+        ><img class="giphy-brand" src="/images/powered-by-giphy.png" alt="Powered by GIPHY"
+      /></a>
+    </div>
+    <div class="results" [attr.aria-busy]="loading()">
+      @if (loading()) {
+        <p class="status" role="status">Carregando GIFs...</p>
+      } @else if (error()) {
+        <div class="status">
+          <p role="alert">{{ error() }}</p>
+          <button type="button" (click)="retry()">Tentar novamente</button>
+        </div>
+      } @else {
+        <div class="gif-grid">
+          @for (gif of items(); track gif.id) {
+            <button
+              class="gif-choice"
+              type="button"
+              [class.selected]="choice()?.id === gif.id"
+              [attr.aria-pressed]="choice()?.id === gif.id"
+              [attr.aria-label]="'Selecionar ' + gif.title"
+              [disabled]="!gif.url"
+              (click)="choice.set(gif)"
+            >
+              <picture>
+                <img [src]="gif.url" [alt]="gif.title" loading="lazy" />
+              </picture>
+              @if (choice()?.id === gif.id) {
+                <span class="selection-mark"
+                  ><i class="bi bi-check-lg" aria-hidden="true"></i
+                ></span>
+              }
+            </button>
+          } @empty {
+            <p class="empty">Nenhum GIF encontrado. Tente outra busca.</p>
+          }
+        </div>
+      }
+    </div>
+    @if (!loading() && !error() && (offset() > 0 || hasMore())) {
+      <nav class="pagination" aria-label="Páginas de GIFs">
+        <button
+          type="button"
+          [disabled]="offset() === 0"
+          (click)="offset.set(offset() >= 24 ? offset() - 24 : 0)"
+        >
+          Anterior
+        </button>
+        <button type="button" [disabled]="!hasMore()" (click)="offset.set(nextOffset())">
+          Próxima
+        </button>
+      </nav>
+    }
+    <footer>
+      <div class="selected-preview">
+        @if (choice(); as gif) {
+          <picture>
+            <img [src]="gif.url" [alt]="gif.title"
+          /></picture>
+          <span>Prévia do perfil</span>
+        } @else {
+          <span>Selecione um GIF para ver a prévia.</span>
+        }
+      </div>
+      <div class="actions">
+        <button type="button" class="secondary" (click)="dismiss()">Cancelar</button
+        ><button type="button" [disabled]="!choice()" (click)="useGif()">Usar GIF</button>
+      </div>
+    </footer>
+  } @else {
+    <div class="unavailable" role="status">
+      <i class="bi bi-image" aria-hidden="true"></i>
+      <p>
+        A busca de GIFs ainda não está disponível. Você pode usar um link de imagem no perfil.
+      </p>
+      <button type="button" (click)="dismiss()">Voltar ao perfil</button>
+    </div>
+    <img class="giphy-brand" src="/images/powered-by-giphy.png" alt="Powered by GIPHY" />
+  }
+</dialog>

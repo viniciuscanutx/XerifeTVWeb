@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, signal } from '@angular/core';
+import { Injectable, effect, inject, signal } from '@angular/core';
+import { AuthService } from './auth.service';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -25,10 +26,19 @@ export type UpsertWatchProgressDto = Omit<WatchProgress, 'progressPercentage' | 
 export class WatchProgressService {
   private readonly base = `${environment.apiUrl.replace(/\/?$/, '/')}Api/WatchProgress`;
 
+  private readonly auth = inject(AuthService);
   readonly items = signal<WatchProgress[]>([]);
 
   constructor(private http: HttpClient) {
-    this.refresh();
+    effect(onCleanup => {
+      const userId = this.auth.currentUser()?.id;
+      this.items.set([]);
+      if (!userId) return;
+      const subscription = this.getContinueWatching().subscribe({
+        next: list => this.items.set(list), error: () => {},
+      });
+      onCleanup(() => subscription.unsubscribe());
+    });
   }
 
   refresh(limit = 50): void {
@@ -47,8 +57,10 @@ export class WatchProgressService {
   }
 
   save(dto: UpsertWatchProgressDto): Observable<WatchProgress> {
+    const userId = this.auth.currentUser()?.id;
     return this.http.post<WatchProgress>(this.base, dto).pipe(
       tap((res) => {
+        if (userId !== this.auth.currentUser()?.id) return;
         const list = [...this.items()];
         const index = list.findIndex((i) => i.contentId === res.contentId);
         if (index >= 0) list[index] = res;

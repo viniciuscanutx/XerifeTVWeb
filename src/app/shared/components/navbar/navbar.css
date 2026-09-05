@@ -594,4 +594,7 @@
   .mobile-tab-bar {
     display: block;
   }
-}
+}.user-avatar-btn { padding: 0; overflow: hidden; }
+.account-profile-link { color: #d6bbff; padding: 8px 10px; text-decoration: none; border-radius: 8px; }
+.account-profile-link:hover { background: #2b203b; }
+.account-profile-link:focus-visible, .user-avatar-btn:focus-visible { outline: 2px solid #d6bbff; outline-offset: 3px; }

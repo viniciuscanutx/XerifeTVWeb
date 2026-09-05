@@ -1,0 +1,81 @@
+:is(.btn-reproduzir, .btn-more, .top-left-btn, .more-menu-item, .audio-choice, .season-select) {
+  transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+:is(.btn-reproduzir, .btn-more, .top-left-btn, .details-toggle, .episodes-arrow) i {
+  display: inline-block;
+  transition: transform 220ms ease, color 180ms ease;
+}
+:is(.btn-reproduzir, .btn-more, .top-left-btn, .more-menu-item, .details-toggle):focus-visible {
+  outline: 2px solid #d6bbff;
+  outline-offset: 4px;
+}
+@media (hover: hover) and (pointer: fine) {
+  :is(.btn-reproduzir, .btn-more, .top-left-btn):enabled:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px #0005;
+  }
+  .btn-reproduzir:enabled:hover {
+    opacity: 1;
+    background-color: #eee5ff;
+    box-shadow: 0 8px 28px #b789ff35;
+  }
+  .btn-reproduzir:enabled:hover .bi-play-fill {
+    transform: translateX(3px) scale(1.1);
+  }
+  .top-left-btn:enabled:hover i {
+    transform: translateX(-3px);
+  }
+  .btn-more:enabled:hover i {
+    transform: rotate(90deg);
+  }
+  .more-menu-item:enabled:hover {
+    transform: translateX(2px);
+  }
+  .audio-choice:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.18);
+  }
+  .season-select:hover {
+    color: #d6bbff;
+  }
+  .details-toggle:hover i {
+    color: #d6bbff;
+    transform: translateY(3px);
+  }
+  .episodes-arrow:hover i {
+    transform: scale(1.2);
+  }
+}
+:is(.btn-reproduzir, .btn-more, .top-left-btn, .more-menu-item):enabled:active {
+  transform: scale(0.95);
+  box-shadow: none;
+}
+.audio-choice:active,
+.season-select:active {
+  transform: scale(0.97);
+}
+.details-toggle:active i,
+.episodes-arrow:active i {
+  transform: scale(0.85);
+}
+.episode-card:active {
+  transform: scale(0.98);
+}
+.more-menu {
+  transform-origin: bottom left;
+  animation: watch-menu-in 160ms ease-out both;
+}
+@keyframes watch-menu-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.btn-reproduzir, .btn-more, .top-left-btn, .more-menu-item, .audio-choice, .season-select, .episode-card, .episode-card__play, .episodes-arrow),
+  :is(.btn-reproduzir, .btn-more, .top-left-btn, .details-toggle, .episodes-arrow) i {
+    transition: none;
+    transform: none !important;
+  }
+  .more-menu {
+    animation: none;
+  }
+}

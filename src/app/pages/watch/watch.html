@@ -42,6 +42,20 @@
         @if (isHighQuality()) {
         <span class="meta-4k">4K</span>
         }
+        @if (hasBothAudioVersions()) {
+        <label class="meta-audio audio-choice">
+          <select #audioVersion aria-label="Versão de áudio" [value]="selectedAudio()"
+            (change)="setAudio(audioVersion.value === 'sub' ? 'sub' : 'dub')">
+            <option value="dub" aria-label="Dublado">DUB</option>
+            <option value="sub" aria-label="Legendado">LEG</option>
+          </select>
+          <i class="bi bi-chevron-down audio-choice-arrow" aria-hidden="true"></i>
+        </label>
+        } @else if (hasDubbedVersion()) {
+        <span class="meta-audio" aria-label="Dublado" title="Dublado">DUB</span>
+        } @else if (hasSubtitledVersion()) {
+        <span class="meta-audio" aria-label="Legendado" title="Legendado">LEG</span>
+        }
       </div>
 
       @if (genresLabel()) {
@@ -61,6 +75,7 @@
           }
         </button>
 
+        <app-favorite-button [movieId]="content.id" [contentType]="content.type === 'series' ? 'series' : 'movie'" />
         <div class="more-wrapper">
           <button class="btn-more" type="button" (click)="toggleMoreMenu()" [attr.aria-expanded]="moreMenuOpen()"
             aria-label="Mais opções">
@@ -76,24 +91,6 @@
           }
         </div>
 
-        @if (hasBothAudioVersions()) {
-        <div class="audio-selector">
-          <button type="button" class="audio-btn" [class.active]="selectedAudio() === 'dub'" (click)="setAudio('dub')">
-            <i class="bi bi-translate"></i> Dublado
-          </button>
-          <button type="button" class="audio-btn" [class.active]="selectedAudio() === 'sub'" (click)="setAudio('sub')">
-            <i class="bi bi-chat-square-text-fill"></i> Legendado
-          </button>
-        </div>
-        } @else if (hasDubbedVersion()) {
-        <div class="audio-badge-single">
-          <i class="bi bi-translate"></i> Dublado
-        </div>
-        } @else if (hasSubtitledVersion()) {
-        <div class="audio-badge-single">
-          <i class="bi bi-chat-square-text-fill"></i> Legendado
-        </div>
-        }
       </div>
 
     </div>
@@ -189,6 +186,7 @@
     </section>
     }
 
+
     @if (parentalBadge(); as badge) {
     <section class="page-section">
       <h2 class="section-title">Indicação Parental</h2>
@@ -256,6 +254,7 @@
       }
     </section>
 
+    <section class="page-section"><app-movie-reviews [movieId]="content.id" [contentType]="content.type === 'series' ? 'series' : 'movie'" /></section>
   </div>
 
   @if (recommended().length > 0) {

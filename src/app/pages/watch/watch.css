@@ -177,6 +177,16 @@
   text-shadow: none;
 }
 
+.meta-audio {
+  background: linear-gradient(135deg, #0057a8 0%, #003366 100%);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 3px 9px;
+  border-radius: 6px;
+}
+
 .meta-genres {
   font-size: 16px;
   color: #9a9aa4;
@@ -198,72 +208,50 @@
   overflow: hidden;
 }
 
-.audio-selector {
-  display: inline-flex;
-  background-color: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 30px;
-  padding: 4px;
-  gap: 4px;
-  backdrop-filter: blur(8px);
-}
-
-.audio-badge-single {
+.meta-audio {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 22px;
-  border-radius: 24px;
-  background-color: rgba(155, 104, 255, 0.2);
-  border: 1px solid rgba(155, 104, 255, 0.4);
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 14px rgba(155, 104, 255, 0.3);
+  white-space: nowrap;
 }
 
-.audio-badge-single i {
-  font-size: 15px;
-  color: #c4a1ff;
+.audio-choice {
+  position: relative;
+  margin: 0;
+  padding: 0;
 }
 
-.audio-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 22px;
-  border-radius: 24px;
+.audio-choice select {
+  appearance: none;
+  padding: 3px 24px 3px 9px;
   border: none;
+  border-radius: 6px;
   background: transparent;
-  color: #a0a0b0;
-  font-size: 14px;
-  font-weight: 600;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
   cursor: pointer;
-  transition: all 0.25s ease;
 }
 
-.audio-btn:hover {
+.audio-choice select option {
+  background: #19131f;
   color: #ffffff;
 }
 
-.audio-btn.active {
-  background-color: #9b68ff;
-  color: #ffffff;
-  font-weight: 700;
-  box-shadow: 0 4px 14px rgba(155, 104, 255, 0.45);
+.audio-choice:focus-within {
+  outline: 2px solid #c4a1ff;
+  outline-offset: 3px;
 }
 
-.audio-btn.disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.audio-choice select:focus {
+  outline: none;
+}
+
+.audio-choice-arrow {
+  position: absolute;
+  right: 8px;
+  font-size: 9px;
   pointer-events: none;
 }
-
-.audio-btn i {
-  font-size: 15px;
-}
-
 .action-buttons-hero {
   display: flex;
   align-items: center;
@@ -858,4 +846,3 @@
     font-size: 14px;
   }
 }
-

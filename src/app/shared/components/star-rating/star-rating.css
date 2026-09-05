@@ -1,0 +1,107 @@
+:host {
+  display: inline-block;
+  vertical-align: middle;
+}
+.star-selector {
+  border: 0;
+  padding: 0;
+  margin-bottom: 10px;
+  min-width: 0;
+}
+legend {
+  float: none;
+  width: auto;
+  font-size: 14px;
+  color: #d4cddd;
+  margin: 0 0 6px;
+}
+.star-options {
+  display: flex;
+}
+.star-choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+i {
+  color: #65576f;
+  pointer-events: none;
+  transition:
+    color 0.15s ease,
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1.4), filter 0.22s ease;
+}
+.star-choice i {
+  font-size: 32px;
+}
+i.filled {
+  color: #b789ff;
+}
+.star-choice:has(input:focus-visible) {
+  outline: 2px solid #d6bbff;
+  outline-offset: 2px;
+}
+.star-choice:has(input:enabled):is(:hover, :focus-within) i {
+  transform: translateY(-3px) scale(1.16);
+  filter: drop-shadow(0 0 7px #b789ff80);
+}
+.star-selector:disabled {
+  opacity: 0.5;
+}
+.star-selector:disabled .star-choice,
+input:disabled {
+  cursor: default;
+}
+.star-selector:disabled .star-choice:has(input:enabled):is(:hover, :focus-within) i {
+  transform: none;
+}
+.star-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  font-size: 16px;
+}
+@media (prefers-reduced-motion: reduce) {
+  i {
+    transition: none;
+  }
+}
+
+.star-choice:has(input:enabled):active i {
+  transform: scale(0.88);
+}
+.star-display i {
+  display: inline-block;
+}
+@media (hover: hover) and (pointer: fine) {
+  .star-display:hover i.filled {
+    transform: translateY(-2px) scale(1.12);
+    filter: drop-shadow(0 0 5px #b789ff70);
+  }
+  .star-display i:nth-child(2) { transition-delay: 25ms; }
+  .star-display i:nth-child(3) { transition-delay: 50ms; }
+  .star-display i:nth-child(4) { transition-delay: 75ms; }
+  .star-display i:nth-child(5) { transition-delay: 100ms; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .star-choice i,
+  .star-display i {
+    transition: none;
+    transform: none !important;
+  }
+}

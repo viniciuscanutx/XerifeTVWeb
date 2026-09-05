@@ -1,0 +1,106 @@
+<section class="collection-section" [attr.aria-label]="title()" [attr.aria-busy]="loading()">
+  <header class="collection-heading">
+    <h2>{{ title() }}</h2>
+    @if (preview()) {
+      <a
+        class="view-all"
+        [routerLink]="['/profile/favorites', contentType() === 'series' ? 'series' : 'movies']"
+        [attr.aria-label]="
+          contentType() === 'series'
+            ? 'Ver todas as séries favoritas'
+            : 'Ver todos os filmes favoritos'
+        "
+        >Ver tudo</a
+      >
+    }
+  </header>
+  @if (actionError()) {
+    <p role="alert">{{ actionError() }}</p>
+  }
+  @if (loading()) {
+    <p class="list-status" role="status">Carregando favoritos...</p>
+  } @else if (error()) {
+    <p role="alert">{{ error() }}</p>
+    <button type="button" (click)="reload()">Tentar novamente</button>
+  } @else {
+    <div class="collection-grid" [class.preview-grid]="preview()">
+      @for (favorite of favorites(); track favorite.movie.id) {
+        <article class="collection-card">
+          <div class="poster-wrapper">
+            <a
+              class="poster-link"
+              [routerLink]="
+                favorite.movie.isAvailable
+                  ? ['/watch', favorite.movie.type ?? contentType(), favorite.movie.id]
+                  : null
+              "
+              [attr.aria-label]="favorite.movie.title"
+            >
+              @if (favorite.movie.poster) {
+                <img
+                  [src]="favorite.movie.poster"
+                  [alt]="'Capa de ' + favorite.movie.title"
+                  loading="lazy"
+                />
+              } @else {
+                <i class="bi bi-film" aria-hidden="true"></i>
+              }
+              <span class="cover-overlay" aria-hidden="true"><span class="cover-title">{{ favorite.movie.title }}</span></span>
+            </a>
+            <button
+              class="remove-favorite"
+              type="button"
+              [disabled]="!!removing()"
+              (click)="remove(favorite)"
+              [attr.aria-label]="'Remover ' + favorite.movie.title + ' dos favoritos'"
+              title="Remover dos favoritos"
+            >
+              <i
+                class="bi"
+                [class.bi-heart-fill]="removing() !== favorite.movie.id"
+                [class.bi-hourglass-split]="removing() === favorite.movie.id"
+                aria-hidden="true"
+              ></i>
+            </button>
+          </div>
+          <a
+            class="title-link"
+            [routerLink]="
+              favorite.movie.isAvailable
+                ? ['/watch', favorite.movie.type ?? contentType(), favorite.movie.id]
+                : null
+            "
+            ><h3>{{ favorite.movie.title }}</h3></a
+          >
+          @if (!favorite.movie.isAvailable) {
+            <p>Indisponível no catálogo</p>
+          }
+        </article>
+      } @empty {
+        <div class="collection-empty">
+          <p>
+            {{
+              contentType() === 'series'
+                ? 'Você ainda não favoritou nenhuma série.'
+                : 'Você ainda não favoritou nenhum filme.'
+            }}
+          </p>
+          <a [routerLink]="contentType() === 'series' ? '/series' : '/movies'">{{
+            contentType() === 'series' ? 'Explorar séries' : 'Explorar filmes'
+          }}</a>
+        </div>
+      }
+    </div>
+    @if (!preview() && (page() > 1 || hasMore())) {
+      <nav class="pagination" aria-label="Páginas de favoritos">
+        <button type="button" [disabled]="page() === 1" (click)="page.set(page() - 1)">
+          Anterior
+        </button>
+        <span aria-live="polite">Página {{ page() }}</span>
+        <button type="button" [disabled]="!hasMore()" (click)="page.set(page() + 1)">
+          Próxima
+        </button>
+      </nav>
+    }
+  }
+</section>

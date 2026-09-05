@@ -1,0 +1,131 @@
+dialog {
+  width: min(620px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 28px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #55406d;
+  border-radius: 22px;
+  background: #19131f;
+  color: #fff;
+  box-shadow: 0 24px 80px #0009;
+}
+dialog::backdrop {
+  background: #050309b8;
+  backdrop-filter: blur(5px);
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+.movie-title {
+  color: #c8acdf;
+  margin: 8px 0 0;
+  overflow-wrap: anywhere;
+}
+button {
+  padding: 10px 16px;
+  border: 1px solid #655071;
+  border-radius: 10px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+.close-button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  flex-shrink: 0;
+}
+button:focus-visible {
+  outline: 2px solid #d6bbff;
+  outline-offset: 3px;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.delete-message {
+  color: #d8cfdf;
+  margin-bottom: 24px;
+}
+.delete-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.delete-button {
+  background: #74384c;
+  border-color: #b86680;
+}
+[role='alert'] {
+  color: #ffb4b4;
+}
+@media (max-width: 576px) {
+  dialog {
+    padding: 22px 18px;
+  }
+  h2 {
+    font-size: 21px;
+  }
+}
+
+button {
+  cursor: pointer;
+  transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  button:enabled:hover {
+    transform: translateY(-2px);
+    background-color: var(--button-hover-background, #9562e8);
+    border-color: var(--button-hover-border, #c4a1ff);
+    box-shadow: 0 5px 18px var(--button-hover-shadow, #9b68ff35);
+  }
+}
+button:enabled:active {
+  transform: translateY(0) scale(0.96);
+  box-shadow: none;
+}
+button:disabled {
+  cursor: default;
+}
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+    transform: none !important;
+  }
+}
+button {
+  --button-hover-background: #352342;
+  --button-hover-border: #a381bd;
+}
+.delete-button {
+  --button-hover-background: #93485f;
+  --button-hover-border: #df8ba2;
+  --button-hover-shadow: #d9799130;
+}
+.close-button i {
+  display: inline-block;
+  transition: transform 200ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .close-button:enabled:hover i {
+    transform: rotate(90deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .close-button i {
+    transition: none;
+    transform: none !important;
+  }
+}

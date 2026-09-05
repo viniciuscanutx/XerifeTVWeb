@@ -1,0 +1,253 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.collection-section {
+  margin-bottom: 44px;
+}
+.collection-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+h2 {
+  color: #f5f0fa;
+  font-size: 23px;
+  font-weight: 700;
+  margin: 0;
+}
+a {
+  color: #d4b5ff;
+  text-decoration: none;
+}
+.view-all {
+  font-size: 14px;
+  white-space: nowrap;
+  padding: 6px 0;
+  border-bottom: 1px solid transparent;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease;
+}
+.view-all:hover {
+  color: #fff;
+  border-color: #b789ff;
+}
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 28px 20px;
+}
+.collection-card {
+  min-width: 0;
+}
+.poster-wrapper {
+  position: relative;
+}
+.poster-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #251c30;
+  color: #b79bcd;
+  font-size: 32px;
+}
+.poster-link img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 280ms ease;
+}
+.poster-link,
+.review-poster {
+  position: relative;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  transition:
+    transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+    box-shadow 0.3s ease;
+}
+.cover-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 50%, rgba(0, 0, 0, 0.97) 100%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.cover-title {
+  width: 100%;
+  padding: 0.75rem;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+:is(.poster-link, .review-poster):focus-visible {
+  transform: scale(1.02);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(255, 255, 255, 0.12);
+}
+:is(.poster-link, .review-poster):focus-visible .cover-overlay {
+  opacity: 1;
+}
+.title-link h3 {
+  font-size: 15px;
+  line-height: 1.45;
+  margin: 12px 0 6px;
+  color: #f5f0fa;
+  overflow-wrap: anywhere;
+}
+.collection-card p {
+  color: #bdb3c8;
+  font-size: 12px;
+  margin: 0;
+}
+.collection-card time {
+  display: block;
+  margin-top: 4px;
+}
+button {
+  color: #fff;
+  background: #211a2b;
+  border: 1px solid #655071;
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.remove-favorite {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  border-color: #ffffff30;
+  background: #151019dc;
+  color: #dec9ff;
+  backdrop-filter: blur(6px);
+}
+.remove-favorite i {
+  display: inline-block;
+  transition: transform 180ms ease;
+}
+.collection-empty {
+  grid-column: 1 / -1;
+  padding: 28px 0;
+  color: #bdb3c8;
+}
+.collection-empty p {
+  margin: 0 0 10px;
+}
+.list-status {
+  padding: 28px 0;
+  color: #bdb3c8;
+}
+[role='alert'] {
+  color: #ffb4b4;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin: 30px 0 0;
+}
+.pagination span {
+  font-size: 14px;
+  color: #bdb3c8;
+}
+:is(a, button):focus-visible {
+  outline: 2px solid #d6bbff;
+  outline-offset: 4px;
+}
+@media (hover: hover) and (pointer: fine) {
+  :is(.poster-link, .review-poster):hover {
+    transform: scale(1.02);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(255, 255, 255, 0.12);
+  }
+  :is(.poster-link, .review-poster):hover .cover-overlay {
+    opacity: 1;
+  }
+  button:enabled:hover {
+    background: #3d2954;
+    border-color: #b789ff;
+    transform: translateY(-2px);
+  }
+  .remove-favorite:enabled:hover i {
+    transform: scale(1.12);
+  }
+}
+button:enabled:active {
+  transform: scale(0.95);
+}
+@media (max-width: 768px) {
+  h2 {
+    font-size: 20px;
+  }
+  .collection-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 16px;
+  }
+  .preview-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 42%;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding: 4px 4px 14px;
+    margin: -4px -4px 0;
+    scrollbar-width: thin;
+    scrollbar-color: #51445f transparent;
+  }
+  .preview-grid .collection-card {
+    scroll-snap-align: start;
+  }
+  .preview-grid:has(.collection-empty) {
+    display: block;
+  }
+  .collection-section {
+    margin-bottom: 34px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .remove-favorite i,
+  .poster-link,
+  .poster-link img,
+  .review-poster,
+  .review-poster img,
+  .view-all,
+  .cover-overlay {
+    transition: none;
+    transform: none !important;
+  }
+}
+
+@media (hover: none), (max-width: 700px) {
+  .cover-overlay {
+    opacity: 1;
+    background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.82) 70%, rgba(0, 0, 0, 0.97) 100%);
+  }
+  .cover-title {
+    padding: 0.5rem 0.55rem;
+    font-size: 0.78rem;
+  }
+}

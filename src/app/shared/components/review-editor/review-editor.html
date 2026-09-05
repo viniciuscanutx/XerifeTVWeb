@@ -1,0 +1,40 @@
+<form (ngSubmit)="save()">
+  <fieldset [disabled]="busy()" aria-label="Minha avaliação">
+    <app-star-rating
+      [value]="rating()"
+      [editable]="true"
+      [disabled]="busy()"
+      (valueChange)="rating.set($event)"
+    />
+    <label
+      >{{
+        contentType() === 'series' ? 'O que você achou da série?' : 'O que você achou do filme?'
+      }}
+      <textarea
+        name="text"
+        [ngModel]="text()"
+        (ngModelChange)="text.set($event)"
+        required
+        maxlength="2000"
+        rows="4"
+        [placeholder]="
+          contentType() === 'series'
+            ? 'Compartilhe sua opinião sobre a série'
+            : 'Compartilhe sua opinião sobre o filme'
+        "
+      ></textarea>
+    </label>
+    <div class="editor-footer">
+      <small>{{ text().length }}/2000</small>
+      <button type="submit" [disabled]="!text().trim() || busy()">
+        {{ busy() ? 'Salvando...' : 'Salvar avaliação' }}
+      </button>
+      @if (showCancel()) {
+        <button type="button" class="secondary" (click)="cancelled.emit()">Cancelar</button>
+      }
+    </div>
+  </fieldset>
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+  }
+</form>

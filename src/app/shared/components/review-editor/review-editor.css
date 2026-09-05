@@ -1,0 +1,101 @@
+:host {
+  display: block;
+}
+form {
+  margin: 0;
+}
+fieldset {
+  min-width: 0;
+}
+legend {
+  float: none;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #d4cddd;
+}
+textarea {
+  background: #0f0d15;
+  border: 1px solid #51445f;
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  width: 100%;
+  font-size: 16px;
+}
+app-star-rating {
+  margin-bottom: 16px;
+}
+textarea {
+  resize: vertical;
+}
+.editor-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+small {
+  margin-right: auto;
+  color: #bab0c8;
+}
+button {
+  border: 1px solid #9b68ff;
+  background: #8250d5;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+button.secondary {
+  background: transparent;
+  border-color: #62536f;
+}
+button:disabled {
+  opacity: 0.5;
+}
+:is(button, textarea):focus-visible {
+  outline: 2px solid #d6bbff;
+  outline-offset: 3px;
+}
+p[role='alert'] {
+  color: #ffb4b4;
+  margin: 16px 0 0;
+}
+
+button {
+  cursor: pointer;
+  transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  button:enabled:hover {
+    transform: translateY(-2px);
+    background-color: var(--button-hover-background, #9562e8);
+    border-color: var(--button-hover-border, #c4a1ff);
+    box-shadow: 0 5px 18px var(--button-hover-shadow, #9b68ff35);
+  }
+}
+button:enabled:active {
+  transform: translateY(0) scale(0.96);
+  box-shadow: none;
+}
+button:disabled {
+  cursor: default;
+}
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+    transform: none !important;
+  }
+}
+button.secondary {
+  --button-hover-background: #352342;
+  --button-hover-border: #a381bd;
+}

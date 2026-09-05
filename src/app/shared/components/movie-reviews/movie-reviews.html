@@ -1,0 +1,71 @@
+<section aria-labelledby="movie-reviews-heading">
+  <h2 id="movie-reviews-heading">Avaliações da comunidade</h2>
+
+  @if (loading()) {
+    <p role="status">Carregando avaliações...</p>
+  } @else if (error()) {
+    <p role="alert">{{ error() }}</p>
+    <button type="button" (click)="retryLoad()">Tentar novamente</button>
+  } @else {
+    @if (!ownReview() && displayedReviews().length) {
+      <button type="button" (click)="reviewAction.set('edit')">
+        {{ contentType() === 'series' ? 'Avaliar série' : 'Avaliar filme' }}
+      </button>
+    }
+    <div class="reviews-list">
+      @for (review of displayedReviews(); track review.id) {
+        <article [class.own-review]="review.id === ownReview()?.id">
+          <header>
+            <div class="avatar">
+              <app-profile-avatar [url]="review.author.avatarUrl" [giphyId]="review.author.avatarGiphyId" [name]="review.author.name" />
+            </div>
+            <div>
+              <strong>{{ review.author.name }}</strong
+              ><time>{{ review.updatedAt || review.createdAt | date: 'dd/MM/yyyy' }}</time>
+            </div>
+            <app-star-rating class="rating" [value]="review.rating" />
+          </header>
+          <p class="review-text">{{ review.text }}</p>
+          @if (review.id === ownReview()?.id) {
+            <div class="review-actions">
+              <button type="button" (click)="reviewAction.set('edit')">
+                <i class="bi bi-pencil" aria-hidden="true"></i> Editar
+              </button>
+              <button type="button" (click)="reviewAction.set('delete')">
+                <i class="bi bi-trash" aria-hidden="true"></i> Excluir
+              </button>
+            </div>
+          }
+        </article>
+      } @empty {
+        <div class="empty-review">
+          <app-review-editor
+            [movieId]="movieId()"
+            [contentType]="contentType()"
+            [showCancel]="false"
+            (saved)="changed()"
+          />
+        </div>
+      }
+    </div>
+    @if (moreError()) {
+      <p role="alert">{{ moreError() }}</p>
+    }
+    @if (hasMore()) {
+      <button type="button" [disabled]="loadingMore()" (click)="loadMore()">
+        {{ loadingMore() ? 'Carregando...' : 'Ver mais avaliações' }}
+      </button>
+    }
+  }
+</section>
+
+<app-review-dialog
+  [open]="reviewAction() !== null"
+  [movieId]="movieId()"
+  [contentType]="contentType()"
+  [review]="ownReview()"
+  [mode]="reviewAction() ?? 'edit'"
+  (closed)="reviewAction.set(null)"
+  (saved)="changed()"
+  (deleted)="changed()"
+/>

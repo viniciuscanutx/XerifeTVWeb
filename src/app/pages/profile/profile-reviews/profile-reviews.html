@@ -1,0 +1,99 @@
+<section aria-label="Minhas avaliações" [attr.aria-busy]="loading()">
+  <header class="reviews-heading">
+    <h2>Minhas avaliações</h2>
+    <p>Suas 10 avaliações mais recentes de filmes e séries.</p>
+  </header>
+  @if (loading()) {
+    <p class="list-status" role="status">Carregando avaliações...</p>
+  } @else if (error()) {
+    <p role="alert">{{ error() }}</p>
+    <button type="button" (click)="reload()">Tentar novamente</button>
+  } @else {
+    <div class="review-list">
+      @for (review of visibleReviews(); track review.id) {
+        <article class="review-card">
+          <a
+            class="review-poster"
+            [routerLink]="
+              review.movie.isAvailable
+                ? ['/watch', review.movie.type ?? 'movie', review.movie.id]
+                : null
+            "
+            [attr.aria-label]="review.movie.title"
+          >
+            @if (review.movie.poster) {
+              <img
+                [src]="review.movie.poster"
+                [alt]="'Capa de ' + review.movie.title"
+                loading="lazy"
+              />
+            } @else {
+              <i class="bi bi-film" aria-hidden="true"></i>
+            }
+            <span class="cover-overlay" aria-hidden="true"><span class="cover-title">{{ review.movie.title }}</span></span>
+          </a>
+          <div class="review-content">
+            <header>
+              <div>
+                <a
+                  [routerLink]="
+                    review.movie.isAvailable
+                      ? ['/watch', review.movie.type ?? 'movie', review.movie.id]
+                      : null
+                  "
+                  ><h3>{{ review.movie.title }}</h3></a
+                ><time>{{ review.updatedAt || review.createdAt | date: 'dd/MM/yyyy' }}</time>
+              </div>
+              <app-star-rating class="rating" [value]="review.rating" />
+            </header>
+            <p class="review-text">{{ review.text }}</p>
+            <div class="review-actions">
+              <button
+                type="button"
+                class="secondary"
+                (click)="reviewAction.set({ review, mode: 'edit' })"
+              >
+                <i class="bi bi-pencil" aria-hidden="true"></i> Editar
+              </button>
+              <button
+                type="button"
+                class="secondary"
+                (click)="reviewAction.set({ review, mode: 'delete' })"
+              >
+                <i class="bi bi-trash" aria-hidden="true"></i> Excluir
+              </button>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+
+    @if (!reviews().length) {
+      <div class="collection-empty">
+        <p>Você ainda não publicou nenhuma avaliação.</p>
+        <a routerLink="/movies">Explorar filmes</a>
+      </div>
+    }
+    @if (totalPages() > 1) {
+      <nav class="pagination" aria-label="Páginas de avaliações">
+        <button type="button" [disabled]="page() === 1" (click)="page.set(page() - 1)">
+          Anterior
+        </button>
+        <span aria-live="polite">Página {{ page() }} de {{ totalPages() }}</span>
+        <button type="button" [disabled]="page() >= totalPages()" (click)="page.set(page() + 1)">
+          Próxima
+        </button>
+      </nav>
+    }
+  }
+</section>
+<app-review-dialog
+  [open]="reviewAction() !== null"
+  [movieId]="reviewAction()?.review?.movie?.id ?? ''"
+  [contentType]="reviewAction()?.review?.movie?.type ?? 'movie'"
+  [review]="reviewAction()?.review ?? null"
+  [mode]="reviewAction()?.mode ?? 'edit'"
+  (closed)="reviewAction.set(null)"
+  (saved)="reload()"
+  (deleted)="reload()"
+/>

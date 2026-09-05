@@ -1,0 +1,13 @@
+<dialog
+  #dialog
+  aria-labelledby="feedback-title"
+  aria-describedby="feedback-description"
+  (close)="closed()"
+>
+  @if (feedback.message(); as message) {
+    <div class="success-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></div>
+    <h2 id="feedback-title">{{ message.title }}</h2>
+    <p id="feedback-description">{{ message.description }}</p>
+    <button type="button" autofocus (click)="feedback.dismiss()">OK</button>
+  }
+</dialog>

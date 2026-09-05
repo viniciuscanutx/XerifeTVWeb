@@ -20,6 +20,8 @@ import { seriesToMediaItem, toMediaItem } from '../../shared/data/content-api.ma
 import { capitalizeFirstLetter } from '../../utils/utils';
 import { VideoPlayerModal } from '../../shared/components/video-player-modal/video-player-modal';
 import { WatchProgressService } from '../../shared/services/watch-progress.service';
+import { FavoriteButton } from '../../shared/components/favorite-button/favorite-button';
+import { MovieReviews } from '../../shared/components/movie-reviews/movie-reviews';
 
 const PROGRESS_SAVE_INTERVAL_MS = 15000;
 const PROGRESS_MIN_CURRENT_TIME = 5;
@@ -72,9 +74,9 @@ const PARENTAL_BADGES: Record<string, ParentalBadge> = {
 
 @Component({
   selector: 'app-watch',
-  imports: [RouterLink, VideoPlayerModal, MediaCarousel],
+  imports: [RouterLink, VideoPlayerModal, MediaCarousel, FavoriteButton, MovieReviews],
   templateUrl: './watch.html',
-  styleUrl: './watch.css',
+  styleUrls: ['./watch.css', './watch-motion.css'],
 })
 export class Watch implements AfterViewInit, OnDestroy {
   readonly capitalizeFirstLetter = capitalizeFirstLetter;
@@ -276,7 +278,7 @@ export class Watch implements AfterViewInit, OnDestroy {
     if (!item) return;
 
     const progress = this.watchProgress.getItemProgress(item.id);
-    if (progress && progress.currentTime > 0) {
+    if (progress && progress.currentTime > 0 && progress.progressPercentage < 100) {
       this.savedStartTime.set(progress.currentTime);
     } else {
       this.savedStartTime.set(0);
@@ -375,8 +377,14 @@ export class Watch implements AfterViewInit, OnDestroy {
   onVideoEnded(): void {
     const item = this.item();
     if (!item) return;
+    if (item.type === 'series') {
+      this.lastPlayback = null;
+      this.watchProgress.remove(item.id).subscribe();
+      return;
+    }
+    const duration = this.lastPlayback?.duration;
+    if (duration && duration > 0) this.saveProgress(duration, duration);
     this.lastPlayback = null;
-    this.watchProgress.remove(item.id).subscribe();
   }
 
   private flushProgress(): void {

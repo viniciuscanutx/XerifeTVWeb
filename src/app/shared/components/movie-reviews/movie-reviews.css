@@ -1,0 +1,136 @@
+:host {
+  display: block;
+}
+h2 {
+  font-size: 24px;
+  margin-bottom: 22px;
+  font-weight: 700;
+}
+.reviews-list {
+  display: grid;
+  gap: 16px;
+  margin: 24px 0;
+}
+article {
+  background: #141219;
+  border: 1px solid #302b38;
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 0;
+}
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+header strong {
+  overflow-wrap: anywhere;
+}
+time {
+  display: block;
+  color: #b4aabc;
+  font-size: 12px;
+  margin-top: 3px;
+}
+.rating {
+  margin-left: auto;
+  white-space: nowrap;
+  color: #d9c0ff;
+}
+.review-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 18px 0 0;
+  color: #d8d2de;
+  line-height: 1.7;
+}
+.empty {
+  color: #b4aabc;
+  padding: 16px 0;
+}
+button {
+  background: #211a2b;
+  border: 1px solid #6c5388;
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px 16px;
+}
+button:focus-visible {
+  outline: 2px solid #c4a1ff;
+  outline-offset: 3px;
+}
+[role='alert'] {
+  color: #ffb4b4;
+}
+[role='status'] {
+  color: #c9b1ee;
+}
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.review-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+}
+
+.review-actions button {
+  cursor: pointer;
+  transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.review-actions button i {
+  display: inline-block;
+  transition: transform 180ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .review-actions button:enabled:hover {
+    transform: translateY(-2px);
+    background: #3d2954;
+    border-color: #b789ff;
+    box-shadow: 0 5px 16px #9b68ff26;
+  }
+  .review-actions button:enabled:hover i {
+    transform: rotate(-10deg) scale(1.1);
+  }
+  .review-actions button:enabled:has(.bi-trash):hover {
+    background: #3b202b;
+    border-color: #d97991;
+    box-shadow: 0 5px 16px #d9799120;
+  }
+}
+.review-actions button:enabled:active {
+  transform: translateY(0) scale(0.96);
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .review-actions button,
+  .review-actions button i {
+    transition: none;
+    transform: none !important;
+  }
+}
+
+.empty-review {
+  padding: 24px;
+  background: #19131f;
+  border: 1px solid #3b3046;
+  border-radius: 16px;
+  min-width: 0;
+}
+.empty-review .empty {
+  margin: 0 0 22px;
+  padding: 0;
+}
+@media (max-width: 576px) {
+  .empty-review { padding: 18px; }
+}

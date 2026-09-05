@@ -1,0 +1,60 @@
+<dialog
+  #dialog
+  aria-labelledby="review-dialog-title"
+  (cancel)="cancel($event)"
+  (close)="onNativeClose()"
+>
+  @if (open()) {
+    <header>
+      <div>
+        <h2 id="review-dialog-title">
+          {{
+            mode() === 'delete'
+              ? 'Excluir avaliação'
+              : review()
+                ? 'Editar avaliação'
+                : contentType() === 'series'
+                  ? 'Avaliar série'
+                  : 'Avaliar filme'
+          }}
+        </h2>
+        @if (review(); as currentReview) {
+          <p class="movie-title">{{ currentReview.movie.title }}</p>
+        }
+      </div>
+      <button
+        class="close-button"
+        type="button"
+        aria-label="Fechar"
+        [disabled]="busy()"
+        (click)="dismiss()"
+      >
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </header>
+    @if (mode() === 'delete') {
+      <p class="delete-message">
+        Quer excluir sua avaliação {{ contentType() === 'series' ? 'desta série' : 'deste filme' }}?
+      </p>
+      @if (error()) {
+        <p role="alert">{{ error() }}</p>
+      }
+      <div class="delete-actions">
+        <button type="button" [disabled]="deleting()" (click)="dismiss()" autofocus>
+          Cancelar
+        </button>
+        <button class="delete-button" type="button" [disabled]="deleting()" (click)="remove()">
+          {{ deleting() ? 'Excluindo...' : 'Excluir avaliação' }}
+        </button>
+      </div>
+    } @else {
+      <app-review-editor
+        [movieId]="movieId()"
+        [contentType]="contentType()"
+        [review]="review()"
+        (saved)="onSaved($event)"
+        (cancelled)="dismiss()"
+      />
+    }
+  }
+</dialog>

@@ -1,0 +1,159 @@
+<div class="profile-page animate-page-enter">
+  @if (loading()) {
+    <div class="page-loading-wrapper" role="status">
+      <div class="spinner-purple"></div>
+      <p>Carregando perfil...</p>
+    </div>
+  } @else if (profileError()) {
+    <p role="alert">{{ profileError() }}</p>
+    <button type="button" (click)="loadProfile()">Tentar novamente</button>
+  } @else if (profile(); as user) {
+    <header class="profile-header">
+      <div class="profile-avatar">
+        <app-profile-avatar
+          [url]="user.avatarUrl"
+          [giphyId]="user.avatarGiphyId"
+          [name]="user.name"
+        />
+      </div>
+      <div class="profile-identity">
+        <h1>{{ user.name }}</h1>
+        <p>Por aqui desde {{ user.joinedAt | date: 'MM/yyyy' }}</p>
+      </div>
+      <div class="header-actions">
+        <button type="button" (click)="edit()">Editar perfil</button
+        ><button type="button" class="secondary" (click)="logout()">Sair</button>
+      </div>
+    </header>
+
+    @if (editing()) {
+      <form class="profile-form" #profileForm="ngForm" (ngSubmit)="save()">
+        <fieldset [disabled]="saving()">
+          <legend>Editar perfil</legend>
+          <label
+            >Nome<input
+              name="name"
+              [ngModel]="name()"
+              (ngModelChange)="name.set($event)"
+              required
+              maxlength="100"
+              autocomplete="name"
+          /></label>
+          <label
+            >Link da foto de perfil<input
+              type="url"
+              name="avatarUrl"
+              [ngModel]="avatarUrl()"
+              (ngModelChange)="setAvatarUrl($event)"
+              maxlength="2048"
+              placeholder="https://exemplo.com/minha-foto.jpg"
+              aria-describedby="avatar-help"
+          /></label>
+          <div class="avatar-source-actions">
+            <button type="button" class="secondary" (click)="giphyPickerOpen.set(true)">
+              <i class="bi bi-image" aria-hidden="true"></i> Escolher GIF no GIPHY
+            </button>
+            @if (avatarGiphyId()) {
+              <span>GIF selecionado</span>
+              <button type="button" class="secondary" (click)="avatarGiphyId.set(null)">
+                Remover GIF
+              </button>
+            }
+          </div>
+          <div class="photo-preview">
+            <div class="preview-avatar">
+              <app-profile-avatar [url]="avatarUrl()" [giphyId]="avatarGiphyId()" [name]="name()" />
+            </div>
+            <span>Prévia da foto</span>
+          </div>
+          <div class="form-actions">
+            <button type="submit" [disabled]="profileForm.invalid || !name().trim() || saving()">
+              {{ saving() ? 'Salvando...' : 'Salvar perfil' }}</button
+            ><button type="button" class="secondary" (click)="editing.set(false)">Cancelar</button>
+          </div>
+        </fieldset>
+        @if (saveError()) {
+          <p role="alert">{{ saveError() }}</p>
+        }
+      </form>
+    }
+
+    <nav class="profile-tabs" aria-label="Conteúdo do perfil">
+      <button
+        type="button"
+        [class.active]="activeTab() === 'profile'"
+        [attr.aria-pressed]="activeTab() === 'profile'"
+        (click)="selectTab('profile')"
+      >
+        <i class="bi bi-person" aria-hidden="true"></i> Profile
+      </button>
+      <button
+        type="button"
+        [class.active]="activeTab() === 'reviews'"
+        [attr.aria-pressed]="activeTab() === 'reviews'"
+        (click)="selectTab('reviews')"
+      >
+        <i class="bi bi-star" aria-hidden="true"></i> Avaliações
+      </button>
+    </nav>
+    @if (activeTab() === 'profile') {
+      <app-favorites-collection contentType="movie" [preview]="true" />
+      <app-favorites-collection contentType="series" [preview]="true" />
+      <section
+        class="collection-section recent-section"
+        aria-labelledby="recent-heading"
+        [attr.aria-busy]="recentLoading()"
+      >
+        <header class="collection-heading">
+          <h2 id="recent-heading">Assistidos recentemente</h2>
+        </header>
+        @if (recentLoading()) {
+          <p class="list-status" role="status">Carregando recentes...</p>
+        } @else if (recentError()) {
+          <p role="alert">{{ recentError() }}</p>
+          <button type="button" (click)="loadRecent()">Tentar novamente</button>
+        } @else {
+          <div class="collection-grid preview-grid">
+            @for (item of recent(); track item.type + ':' + item.contentId) {
+              <article class="collection-card">
+                <a
+                  class="poster-link"
+                  [routerLink]="['/watch', item.type, item.contentId]"
+                  [attr.aria-label]="item.title"
+                >
+                  @if (item.poster) {
+                    <img [src]="item.poster" [alt]="'Capa de ' + item.title" loading="lazy" />
+                  } @else {
+                    <i class="bi bi-film" aria-hidden="true"></i>
+                  }
+                  <span class="cover-overlay" aria-hidden="true"><span class="cover-title">{{ item.title }}</span></span>
+                </a>
+                <a class="title-link" [routerLink]="['/watch', item.type, item.contentId]"
+                  ><h3>{{ item.title }}</h3></a
+                >
+                <p>
+                  {{ item.type === 'series' ? 'Série' : 'Filme' }} ·
+                  {{
+                    item.progressPercentage >= 100
+                      ? 'Assistido'
+                      : item.progressPercentage + '% assistido'
+                  }}<time>{{ item.updatedAt | date: 'dd/MM/yyyy' }}</time>
+                </p>
+              </article>
+            } @empty {
+              <div class="collection-empty">
+                <p>Seus últimos filmes e séries assistidos aparecerão aqui.</p>
+                <a routerLink="/movies">Explorar filmes</a>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+    <app-profile-reviews />
+  }
+</div>
+
+@if (giphyPickerOpen()) {
+  <app-giphy-picker (selected)="selectGif($event)" (closed)="giphyPickerOpen.set(false)" />
+}

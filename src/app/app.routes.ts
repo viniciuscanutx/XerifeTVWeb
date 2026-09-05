@@ -4,6 +4,26 @@ import { permissionGuard } from './shared/guards/permission.guard';
 
 export const routes: Routes = [
   {
+    path: 'profile/favorites/movies',
+    loadComponent: () => import('./pages/profile/favorites-page/favorites-page').then(m => m.FavoritesPage),
+    title: 'CHELIFTV - Filmes favoritos',
+    canActivate: [authGuard],
+    data: { contentType: 'movie' },
+  },
+  {
+    path: 'profile/favorites/series',
+    loadComponent: () => import('./pages/profile/favorites-page/favorites-page').then(m => m.FavoritesPage),
+    title: 'CHELIFTV - Séries favoritas',
+    canActivate: [authGuard],
+    data: { contentType: 'series' },
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('./pages/profile/profile').then(m => m.Profile),
+    title: 'CHELIFTV - Meu perfil',
+    canActivate: [authGuard],
+  },
+  {
     path: 'login',
     loadComponent: () => import('./pages/login/login').then((m) => m.Login),
     title: 'CHELIFTV - Entrar',

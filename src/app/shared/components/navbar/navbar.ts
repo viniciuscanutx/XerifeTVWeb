@@ -5,10 +5,11 @@ import { ContentApiService } from '../../data/content-api.service';
 import { seriesToMediaItem, toMediaItem } from '../../data/content-api.mapper';
 import { MediaItem } from '../media-card/media-card';
 import { AuthService } from '../../services/auth.service';
+import { ProfileAvatar } from '../profile-avatar/profile-avatar';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, ProfileAvatar],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })

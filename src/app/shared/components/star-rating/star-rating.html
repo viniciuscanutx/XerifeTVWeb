@@ -1,0 +1,36 @@
+@if (editable()) {
+  <fieldset class="star-selector" [disabled]="disabled()" (mouseleave)="hovered.set(null)">
+    <legend>Nota</legend>
+    <div class="star-options">
+      @for (star of stars; track star) {
+        <label class="star-choice" (mouseenter)="!disabled() && hovered.set(star)">
+          <input
+            type="radio"
+            name="rating"
+            [value]="star"
+            [checked]="value() === star"
+            [attr.aria-label]="star === 1 ? '1 estrela' : star + ' estrelas'"
+            (change)="valueChange.emit(star)"
+            (keydown)="hovered.set(null)"
+          />
+          <i
+            class="bi bi-star-fill"
+            [class.filled]="star <= (hovered() ?? value())"
+            aria-hidden="true"
+          ></i>
+        </label>
+      }
+    </div>
+  </fieldset>
+} @else {
+  <span
+    class="star-display"
+    role="img"
+    [attr.aria-label]="value() + ' de 5 estrelas'"
+    [title]="value() + ' de 5 estrelas'"
+  >
+    @for (star of stars; track star) {
+      <i class="bi bi-star-fill" [class.filled]="star <= value()" aria-hidden="true"></i>
+    }
+  </span>
+}

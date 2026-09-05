@@ -94,12 +94,12 @@
           [attr.aria-expanded]="accountMenuOpen()"
           (click)="toggleAccountMenu()"
         >
-          <i class="bi bi-person-fill"></i>
+          <app-profile-avatar [url]="authService.currentUser()?.avatarUrl" [giphyId]="authService.currentUser()?.avatarGiphyId" [name]="authService.currentUser()?.name || 'Perfil'" />
         </button>
 
         @if (accountMenuOpen()) {
         <div class="account-menu-dropdown">
-          <span class="account-menu-email">{{ authService.currentUser()?.name || authService.currentUser()?.email }}</span>
+          <a class="account-profile-link" routerLink="/profile">Meu perfil</a>
           <button type="button" class="account-menu-logout" (click)="logout()">
             <i class="bi bi-box-arrow-right"></i> Sair
           </button>
@@ -113,6 +113,10 @@
 <!-- Mobile iOS Style Bottom Tab Bar -->
 <nav class="mobile-tab-bar" aria-label="Navegação mobile">
   <div class="tab-bar-container">
+    <a class="tab-item" routerLink="/profile" routerLinkActive="active" aria-label="Meu perfil">
+      <div class="tab-icon-wrap"><i class="bi bi-person-circle tab-icon-active" aria-hidden="true"></i><i class="bi bi-person tab-icon-inactive" aria-hidden="true"></i></div>
+      <span class="tab-label">Perfil</span>
+    </a>
     @if (authService.hasPermission('home.view')) {
     <a class="tab-item" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
       <div class="tab-icon-wrap">
