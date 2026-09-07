@@ -17,7 +17,10 @@
         />
       </div>
       <div class="profile-identity">
-        <h1>{{ user.name }}</h1>
+        <div class="profile-name">
+          <h1>{{ user.name }}</h1>
+          @if (user.selectedBadge; as badge) { <app-profile-badge class="marginprotop" [badge]="badge" /> }
+        </div>
         <p>Por aqui desde {{ user.joinedAt | date: 'MM/yyyy' }}</p>
       </div>
       <div class="header-actions">
@@ -76,6 +79,8 @@
           <p role="alert">{{ saveError() }}</p>
         }
       </form>
+      
+      <app-profile-badges [profile]="user" (changed)="profile.set($event)" />
     }
 
     <nav class="profile-tabs" aria-label="Conteúdo do perfil">
@@ -128,9 +133,6 @@
                   }
                   <span class="cover-overlay" aria-hidden="true"><span class="cover-title">{{ item.title }}</span></span>
                 </a>
-                <a class="title-link" [routerLink]="['/watch', item.type, item.contentId]"
-                  ><h3>{{ item.title }}</h3></a
-                >
                 <p>
                   {{ item.type === 'series' ? 'Série' : 'Filme' }} ·
                   {{

@@ -1,3 +1,5 @@
+import { ProfileBadge } from '../../shared/components/profile-badge/profile-badge';
+import { ProfileBadges } from './profile-badges/profile-badges';
 import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -23,6 +25,8 @@ import { ProfileReviews } from './profile-reviews/profile-reviews';
     FavoritesCollection,
     ProfileReviews,
     GiphyPicker,
+    ProfileBadge,
+    ProfileBadges,
   ],
   templateUrl: './profile.html',
   styleUrls: ['./profile-collection.css', './profile.css'],

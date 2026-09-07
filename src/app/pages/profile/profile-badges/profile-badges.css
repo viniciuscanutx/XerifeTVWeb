@@ -1,0 +1,97 @@
+section {
+    margin: 20px 0 28px 0;
+    padding: 24px;
+    border: 1px solid #3b3046;
+    border-radius: 16px;
+    background: #16121c;
+}
+
+h2 {
+    font-size: 19px;
+    margin: 0 0 8px;
+    color: #f5f0fa;
+}
+
+p {
+    color: #bdb3c8;
+    font-size: 14px;
+}
+
+fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+}
+
+.badge-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #51445f;
+    border-radius: 10px;
+    color: #e3d9ec;
+    cursor: pointer;
+    transition: border-color 180ms, background-color 180ms;
+}
+
+label.selected {
+    border-color: #b789ff;
+    background: #292039;
+}
+
+input {
+    accent-color: #a574f1;
+}
+
+button {
+    padding: 10px 16px;
+    background: #8350d5;
+    color: #fff;
+    border: 1px solid #ab79f2;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 180ms, background-color 180ms;
+}
+
+button:disabled {
+    opacity: .45;
+    cursor: default;
+}
+
+:focus-visible {
+    outline: 2px solid #d6bbff;
+    outline-offset: 4px;
+}
+
+[role='alert'] {
+    color: #ffb4b4;
+}
+
+@media (hover: hover) {
+    label:hover {
+        border-color: #b789ff;
+    }
+
+    button:enabled:hover {
+        background: #9562e8;
+        transform: translateY(-2px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    label,
+    button {
+        transition: none;
+        transform: none !important;
+    }
+}

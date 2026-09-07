@@ -24,6 +24,10 @@ export class ProfileService {
   private readonly auth = inject(AuthService);
   private readonly base = `${environment.apiUrl.replace(/\/?$/, '/')}Api`;
 
+  selectBadge(badgeId: string | null) {
+    return this.http.put<SiteProfile>(`${this.base}/Profile/Badge`, { badgeId });
+  }
+
   getProfile() {
     return this.http.get<SiteProfile>(`${this.base}/Profile`);
   }

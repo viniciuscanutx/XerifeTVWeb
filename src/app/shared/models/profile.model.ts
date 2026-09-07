@@ -1,3 +1,5 @@
+export interface ProfileBadge { id: string; name: string; color: string; }
+
 export type ProfileContentType = 'movie' | 'series';
 
 export interface SiteProfile {
@@ -6,6 +8,8 @@ export interface SiteProfile {
   avatarUrl: string | null;
   avatarGiphyId?: string | null;
   joinedAt: string;
+  badges?: ProfileBadge[];
+  selectedBadge?: ProfileBadge | null;
 }
 
 export interface ProfilePage<T> {

@@ -63,15 +63,6 @@
               ></i>
             </button>
           </div>
-          <a
-            class="title-link"
-            [routerLink]="
-              favorite.movie.isAvailable
-                ? ['/watch', favorite.movie.type ?? contentType(), favorite.movie.id]
-                : null
-            "
-            ><h3>{{ favorite.movie.title }}</h3></a
-          >
           @if (!favorite.movie.isAvailable) {
             <p>Indisponível no catálogo</p>
           }

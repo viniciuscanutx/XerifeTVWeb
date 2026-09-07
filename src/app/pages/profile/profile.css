@@ -1,11 +1,13 @@
 :host {
   display: block;
 }
+
 .profile-page {
   max-width: 1200px;
   margin: auto;
   padding: 44px 28px 64px;
 }
+
 .profile-header {
   display: flex;
   align-items: center;
@@ -15,6 +17,7 @@
   border: 1px solid #3d2d50;
   border-radius: 22px;
 }
+
 .profile-avatar {
   width: 104px;
   height: 104px;
@@ -22,26 +25,45 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
+
 .profile-identity {
   min-width: 0;
 }
+
 h1 {
   font-size: clamp(24px, 4vw, 36px);
   font-weight: 700;
   margin: 8px 0;
   overflow-wrap: anywhere;
 }
+
+.profile-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 8px 0;
+}
+
+.profile-name h1 {
+  margin: 0;
+  min-width: 0;
+  line-height: 1;
+}
+
 .profile-identity p {
   color: #bdb3c8;
   margin: 0;
   font-size: 14px;
 }
+
 .header-actions {
   margin-left: auto;
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
+
 button {
   background: #8350d5;
   color: #fff;
@@ -51,24 +73,30 @@ button {
   font-weight: 600;
   white-space: nowrap;
 }
+
 button.secondary {
   background: transparent;
   border-color: #51445f;
 }
+
 button:hover {
   background: #46325e;
 }
+
 button:disabled {
   opacity: 0.5;
 }
+
 :is(button, a, input):focus-visible {
   outline: 2px solid #d6bbff;
   outline-offset: 3px;
 }
+
 a {
   color: #d4b5ff;
   text-decoration: none;
 }
+
 .profile-form {
   margin-top: 24px;
   padding: 24px;
@@ -76,14 +104,17 @@ a {
   border-radius: 16px;
   background: #17131e;
 }
+
 fieldset {
   min-width: 0;
 }
+
 legend {
   float: none;
   font-size: 20px;
   font-weight: 600;
 }
+
 label {
   display: flex;
   flex-direction: column;
@@ -91,6 +122,7 @@ label {
   margin: 16px 0;
   font-size: 14px;
 }
+
 input {
   width: 100%;
   background: #0f0d15;
@@ -100,9 +132,11 @@ input {
   padding: 12px;
   font-size: 16px;
 }
+
 small {
   color: #bdb3c8;
 }
+
 .photo-preview,
 .form-actions {
   display: flex;
@@ -110,12 +144,14 @@ small {
   gap: 14px;
   margin-top: 20px;
 }
+
 .preview-avatar {
   width: 56px;
   height: 56px;
   border-radius: 50%;
   font-size: 24px;
 }
+
 .photo-preview span {
   font-size: 13px;
   color: #bdb3c8;
@@ -127,6 +163,7 @@ small {
   margin: 30px 0 36px;
   border-bottom: 1px solid #302637;
 }
+
 .profile-tabs button {
   display: inline-flex;
   align-items: center;
@@ -138,13 +175,16 @@ small {
   border-bottom: 2px solid transparent;
   border-radius: 0;
 }
+
 .profile-tabs button.active {
   color: #fff;
   border-bottom-color: #b789ff;
 }
+
 .profile-tabs button:hover {
   color: #d4b5ff;
 }
+
 .back-link {
   display: inline-flex;
   align-items: center;
@@ -152,6 +192,7 @@ small {
   margin-bottom: 28px;
   color: #c9b1ee;
 }
+
 button {
   cursor: pointer;
   transition:
@@ -160,41 +201,51 @@ button {
     color 180ms ease,
     transform 180ms ease;
 }
+
 button:enabled:active {
   transform: scale(0.97);
 }
+
 button:disabled {
   cursor: default;
 }
+
 [role='alert'] {
   color: #ffb4b4;
 }
+
 @media (max-width: 768px) {
   .profile-page {
     padding: 28px 16px 112px;
   }
+
   .profile-header {
     padding: 24px 18px;
     gap: 16px;
     flex-wrap: wrap;
   }
+
   .profile-avatar {
     width: 76px;
     height: 76px;
     font-size: 30px;
   }
+
   .profile-identity {
     flex: 1;
   }
+
   .header-actions {
     margin-left: 0;
     width: 100%;
     margin-top: 6px;
   }
+
   .profile-form {
     padding: 18px;
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   button {
     transition: none;
@@ -202,6 +253,25 @@ button:disabled {
   }
 }
 
-.avatar-source-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
-.avatar-source-actions button { display: inline-flex; align-items: center; gap: 8px; }
-.avatar-source-actions span { color: #c9bed3; font-size: 13px; }
+.avatar-source-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.avatar-source-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar-source-actions span {
+  color: #c9bed3;
+  font-size: 13px;
+}
+
+.marginprotop{
+  margin-top: 12px;
+}

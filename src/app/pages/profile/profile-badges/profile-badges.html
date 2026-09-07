@@ -1,0 +1,25 @@
+<section class="headermain" aria-labelledby="profile-badges-title">
+  <h2 id="profile-badges-title">Badge do perfil</h2>
+  <p>Escolha qual dos seus badges aparece junto ao seu nome.</p>
+  @if (profile().badges?.length) {
+    <fieldset [disabled]="saving()">
+      <legend class="visually-hidden">Badge exibido</legend>
+      <div class="badge-options">
+        <label [class.selected]="selected() === null">
+          <input type="radio" name="profileBadge" [checked]="selected() === null" (change)="selected.set(null)" />
+          Não exibir badge
+        </label>
+        @for (badge of profile().badges; track badge.id) {
+          <label [class.selected]="selected() === badge.id">
+            <input type="radio" name="profileBadge" [checked]="selected() === badge.id" (change)="selected.set(badge.id)" />
+            <app-profile-badge [badge]="badge" />
+          </label>
+        }
+      </div>
+      <button type="button" (click)="save()" [disabled]="saving() || selected() === (profile().selectedBadge?.id ?? null)">{{ saving() ? 'Salvando...' : 'Salvar badge' }}</button>
+    </fieldset>
+  } @else {
+    <p>Você ainda não recebeu badges.</p>
+  }
+  @if (error()) { <p role="alert">{{ error() }}</p> }
+</section>
