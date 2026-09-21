@@ -90,6 +90,13 @@ export interface SearchResult {
 export interface ResolvedVideoResponse {
   url: string;
   streamFormat: string;
+  sources?: VideoSource[];
+}
+
+export interface VideoSource {
+  url: string;
+  streamFormat: string;
+  quality: string;
 }
 
 export interface ChannelResponse {

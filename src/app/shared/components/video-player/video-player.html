@@ -88,18 +88,20 @@
           </button>
         }
 
-        @if (qualities().length > 1) {
+        @if (qualityOptions().length > 1) {
           <div class="vp__settings">
             <button type="button" class="vp__btn" (click)="showSettings.set(!showSettings())" aria-label="Qualidade">
               <i class="bi bi-gear-fill"></i>
-              <span class="vp__quality-label">{{ currentQuality() === -1 ? 'AUTO' : qualities().find(q => q.hlsIndex === currentQuality())?.label }}</span>
+               <span class="vp__quality-label">{{ currentQualityLabel() }}</span>
             </button>
             @if (showSettings()) {
               <div class="vp__menu" (mouseleave)="showSettings.set(false)">
                 <div class="vp__menu-title">Qualidade</div>
-                <button type="button" class="vp__menu-item" [class.is-active]="currentQuality() === -1" (click)="selectQuality(-1)">Automática</button>
-                @for (q of qualities(); track q.hlsIndex) {
-                  <button type="button" class="vp__menu-item" [class.is-active]="currentQuality() === q.hlsIndex" (click)="selectQuality(q.hlsIndex)">{{ q.label }}</button>
+                @if (customQualities().length <= 1) {
+                  <button type="button" class="vp__menu-item" [class.is-active]="currentQuality() === 'auto'" (click)="selectQuality('auto')">Automática</button>
+                }
+                @for (q of qualityOptions(); track q.id) {
+                   <button type="button" class="vp__menu-item" [class.is-active]="currentQuality() === q.id" (click)="selectQuality(q.id)">{{ q.label }}</button>
                 }
               </div>
             }

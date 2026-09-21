@@ -16,6 +16,7 @@ import { catchError, map, of, switchMap } from 'rxjs';
 import { MediaItem } from '../../shared/components/media-card/media-card';
 import { MediaCarousel } from '../../shared/components/media-carousel/media-carousel';
 import { ContentApiService } from '../../shared/data/content-api.service';
+import { VideoSource } from '../../shared/data/content-api.types';
 import { seriesToMediaItem, toMediaItem } from '../../shared/data/content-api.mapper';
 import { capitalizeFirstLetter } from '../../utils/utils';
 import { VideoPlayerModal } from '../../shared/components/video-player-modal/video-player-modal';
@@ -39,6 +40,7 @@ export interface EpisodeItem {
   alternativeVideoResolverUrl?: string | null;
   videoUrl?: string | null;
   streamFormat?: string;
+  sources?: VideoSource[];
   highQuality?: boolean;
 }
 
@@ -49,6 +51,7 @@ export interface WatchItem extends MediaItem {
   videoResolverUrl?: string | null;
   alternativeVideoResolverUrl?: string | null;
   streamFormat?: string;
+  sources?: VideoSource[];
   totalSeasons?: number;
   highQuality?: boolean;
   logoUrl?: string | null;
@@ -232,6 +235,13 @@ export class Watch implements AfterViewInit, OnDestroy {
     return item?.streamFormat || 'mp4';
   });
 
+  readonly playerSources = computed(() => {
+    const ep = this.activeEpisode();
+    const item = this.item();
+    if (item?.type === 'series' && ep) return ep.sources || [];
+    return item?.sources || [];
+  });
+
   readonly parentalBadge = computed<ParentalBadge | null>(() => {
     const raw = this.item()?.parentalRating?.trim().toUpperCase() ?? '';
     if (!raw) return null;
@@ -306,7 +316,12 @@ export class Watch implements AfterViewInit, OnDestroy {
             this.resolvingVideo.set(false);
             const url = video?.url || resolverUrl;
             const format = video?.streamFormat || (url?.includes('.m3u8') ? 'hls' : 'mp4');
-            this.item.update((curr) => (curr ? { ...curr, videoUrl: url, streamFormat: format } : curr));
+            this.item.update((curr) => (curr ? {
+              ...curr,
+              videoUrl: url,
+              streamFormat: format,
+              sources: video?.sources || [],
+            } : curr));
             this.playerOpen.set(true);
           });
       } else {
@@ -468,7 +483,7 @@ export class Watch implements AfterViewInit, OnDestroy {
       this.resolvingVideo.set(false);
       const url = video?.url || resolverUrl;
       const format = video?.streamFormat || (url?.includes('.m3u8') ? 'hls' : 'mp4');
-      const updatedEp = { ...ep, videoUrl: url, streamFormat: format };
+      const updatedEp = { ...ep, videoUrl: url, streamFormat: format, sources: video?.sources || [] };
       this.episodes.update((list) => list.map((e) => e.id === ep.id ? updatedEp : e));
       this.activeEpisode.set(updatedEp);
       if (openPlayerWhenDone) {
@@ -706,7 +721,12 @@ export class Watch implements AfterViewInit, OnDestroy {
       this.resolvingVideo.set(false);
       const url = video?.url || resolverUrl;
       const format = video?.streamFormat || (url.includes('.m3u8') ? 'hls' : 'mp4');
-      this.item.update((item) => item ? { ...item, videoUrl: url, streamFormat: format } : item);
+      this.item.update((item) => item ? {
+        ...item,
+        videoUrl: url,
+        streamFormat: format,
+        sources: video?.sources || [],
+      } : item);
     });
   }
 
@@ -734,6 +754,7 @@ export class Watch implements AfterViewInit, OnDestroy {
       alternativeVideoResolverUrl: ep.alternativeVideoResolverURL || ep.alternativeVideoResolverUrl,
       videoUrl: ep.video?.url,
       streamFormat: ep.video?.streamFormat || 'mp4',
+      sources: ep.video?.sources || ep.sources || [],
       highQuality: ep.highQuality ?? ep.HighQuality ?? false,
     }));
   }

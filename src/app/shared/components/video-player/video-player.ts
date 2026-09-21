@@ -14,12 +14,15 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import Hls from 'hls.js';
+import type { VideoSource } from '../../data/content-api.types';
 
 type VideoState = 'idle' | 'loading' | 'playing' | 'paused' | 'ended' | 'error';
 
 interface QualityLevel {
-  hlsIndex: number;
+  id: string;
   label: string;
+  hlsIndex?: number;
+  source?: VideoSource;
 }
 
 @Component({
@@ -34,6 +37,7 @@ export class VideoPlayer implements OnDestroy {
 
   readonly src = input.required<string>();
   readonly streamFormat = input<string>('mp4');
+  readonly sources = input<VideoSource[]>([]);
   readonly poster = input<string | null>(null);
   readonly autoplay = input<boolean>(true);
   readonly startTime = input<number>(0);
@@ -62,7 +66,16 @@ export class VideoPlayer implements OnDestroy {
   readonly playbackRate = signal(1);
   readonly isBuffering = signal(false);
   readonly qualities = signal<QualityLevel[]>([]);
-  readonly currentQuality = signal<number>(-1);
+  readonly customQualities = signal<QualityLevel[]>([]);
+  readonly currentQuality = signal<string>('auto');
+  readonly qualityOptions = computed(() =>
+    this.customQualities().length > 1 ? this.customQualities() : this.qualities(),
+  );
+  readonly currentQualityLabel = computed(() => {
+    const current = this.currentQuality();
+    if (current === 'auto') return 'AUTO';
+    return this.qualityOptions().find((quality) => quality.id === current)?.label || 'AUTO';
+  });
   readonly showSettings = signal(false);
   readonly showVolume = signal(false);
 
@@ -95,8 +108,13 @@ export class VideoPlayer implements OnDestroy {
       document.addEventListener(evt, this.onFullscreenChange)
     );
     effect(() => {
+      const sources = this.sources();
+      this.customQualities.set(this.toCustomQualities(sources));
+    });
+    effect(() => {
       const url = this.src();
-      this.loadVideo(url);
+      const format = this.streamFormat();
+      this.loadVideo(url, format);
     });
   }
 
@@ -135,6 +153,11 @@ export class VideoPlayer implements OnDestroy {
       this.currentTime.set(0);
       this.ended.emit();
     };
+    const onError = () => {
+      if (this.tryNextCustomQuality(video)) return;
+      this.videoState.set('error');
+      this.errorMessage.set('Não foi possível carregar o vídeo.');
+    };
     const onLoadedMetadata = () => {
       this.duration.set(video.duration || 0);
       this.volume.set(video.volume);
@@ -168,6 +191,7 @@ export class VideoPlayer implements OnDestroy {
     video.addEventListener('play', onPlay);
     video.addEventListener('pause', onPause);
     video.addEventListener('ended', onEnded);
+    video.addEventListener('error', onError);
     video.addEventListener('loadedmetadata', onLoadedMetadata);
     video.addEventListener('waiting', onWaiting);
     video.addEventListener('playing', onPlaying);
@@ -183,6 +207,7 @@ export class VideoPlayer implements OnDestroy {
       video.removeEventListener('play', onPlay);
       video.removeEventListener('pause', onPause);
       video.removeEventListener('ended', onEnded);
+      video.removeEventListener('error', onError);
       video.removeEventListener('loadedmetadata', onLoadedMetadata);
       video.removeEventListener('waiting', onWaiting);
       video.removeEventListener('playing', onPlaying);
@@ -221,7 +246,11 @@ export class VideoPlayer implements OnDestroy {
     this.buffered.set(end);
   }
 
-  private loadVideo(url: string): void {
+  private loadVideo(
+    url: string,
+    formatValue = this.streamFormat(),
+    options: { preserveTime?: number; autoplay?: boolean } = {},
+  ): void {
     const videoEl = this.videoRef();
     const video = videoEl?.nativeElement;
     if (!video) return;
@@ -232,7 +261,7 @@ export class VideoPlayer implements OnDestroy {
     this.hls?.destroy();
     this.hls = null;
 
-    const format = (this.streamFormat() || '').toLowerCase();
+    const format = (formatValue || '').toLowerCase();
     const isHls =
       format.includes('m3u8') || format.includes('hls') || url.includes('.m3u8');
 
@@ -244,12 +273,13 @@ export class VideoPlayer implements OnDestroy {
       hls.on(Hls.Events.MANIFEST_PARSED, (_e: unknown, data: { levels: { height?: number }[] }) => {
         const levels: QualityLevel[] = data.levels
           .map((l: { height?: number }, i: number) => ({
-            hlsIndex: i,
+            id: `hls-${i}`,
             label: l.height ? `${l.height}p` : `Stream ${i + 1}`,
+            hlsIndex: i,
           }))
           .sort((a: QualityLevel, b: QualityLevel) => parseInt(b.label) - parseInt(a.label));
         this.qualities.set(levels);
-        this.currentQuality.set(-1);
+        this.currentQuality.set('auto');
       });
 
       hls.on(Hls.Events.ERROR, (_e: unknown, data: { type?: string }) => {
@@ -262,15 +292,57 @@ export class VideoPlayer implements OnDestroy {
 
       hls.attachMedia(video);
     } else {
+      video.removeAttribute('src');
+      video.load();
       video.src = url;
+      video.load();
     }
 
     this.bindVideoEvents(video);
     this.startProgressLoop(video);
 
-    if (this.autoplay()) {
+    const preserveTime = options.preserveTime ?? 0;
+    if (preserveTime > 0) {
+      video.addEventListener('loadedmetadata', () => {
+        video.currentTime = Math.min(preserveTime, Math.max(0, (video.duration || preserveTime) - 0.5));
+      }, { once: true });
+    }
+
+    if (options.autoplay ?? this.autoplay()) {
       this.videoPromisePlay(video);
     }
+  }
+
+  private toCustomQualities(sources: VideoSource[]): QualityLevel[] {
+    const unique = new Map<string, QualityLevel>();
+    sources.forEach((source, index) => {
+      if (!source?.url) return;
+      const label = source.quality || 'Auto';
+      const id = `source-${label.toLowerCase()}-${index}`;
+      unique.set(id, { id, label, source });
+    });
+    return [...unique.values()];
+  }
+
+  private tryNextCustomQuality(video: HTMLVideoElement): boolean {
+    const currentUrl = video.currentSrc || video.src;
+    const currentIndex = this.customQualities().findIndex(
+      (quality) => quality.source?.url === currentUrl,
+    );
+    const nextQuality = currentIndex >= 0
+      ? this.customQualities()[currentIndex + 1]
+      : this.customQualities()[0];
+
+    if (!nextQuality?.source || nextQuality.source.url === currentUrl) return false;
+
+    const currentTime = video.currentTime || 0;
+    const autoplay = !video.paused && !video.ended;
+    this.currentQuality.set(nextQuality.id);
+    this.loadVideo(nextQuality.source.url, nextQuality.source.streamFormat, {
+      preserveTime: currentTime,
+      autoplay,
+    });
+    return true;
   }
 
   private videoPromisePlay(video: HTMLVideoElement): void {
@@ -354,10 +426,34 @@ export class VideoPlayer implements OnDestroy {
     this.setPlaybackRate(next);
   }
 
-  selectQuality(hlsIndex: number): void {
-    if (!this.hls) return;
-    this.currentQuality.set(hlsIndex);
-    this.hls.currentLevel = hlsIndex;
+  selectQuality(qualityId: string): void {
+    if (qualityId === 'auto' && this.hls) {
+      this.currentQuality.set('auto');
+      this.hls.currentLevel = -1;
+      this.showSettings.set(false);
+      return;
+    }
+
+    const quality = this.qualityOptions().find((option) => option.id === qualityId);
+    if (!quality) return;
+
+    if (quality.hlsIndex !== undefined && this.hls) {
+      this.currentQuality.set(quality.id);
+      this.hls.currentLevel = quality.hlsIndex;
+      this.showSettings.set(false);
+      return;
+    }
+
+    if (quality.source) {
+      const video = this.videoRef()?.nativeElement;
+      const currentTime = video?.currentTime || 0;
+      const autoplay = !!video && !video.paused && !video.ended;
+      this.currentQuality.set(quality.id);
+      this.loadVideo(quality.source.url, quality.source.streamFormat, {
+        preserveTime: currentTime,
+        autoplay,
+      });
+    }
     this.showSettings.set(false);
   }
 
@@ -491,10 +587,12 @@ export class VideoPlayer implements OnDestroy {
         event.preventDefault();
         break;
       case 'ArrowLeft':
-        video.currentTime = Math.max(0, video.currentTime - 5);
+        this.seekBackward();
+        event.preventDefault();
         break;
       case 'ArrowRight':
-        video.currentTime = Math.min(video.duration || 0, video.currentTime + 5);
+        this.seekForward();
+        event.preventDefault();
         break;
       case 'ArrowUp':
         this.changeVolume(Math.min(1, video.volume + 0.1));
@@ -531,7 +629,7 @@ export class VideoPlayer implements OnDestroy {
   }
 
   retry(): void {
-    this.loadVideo(this.src());
+    this.loadVideo(this.src(), this.streamFormat());
   }
 
   private formatTime(value: number): string {

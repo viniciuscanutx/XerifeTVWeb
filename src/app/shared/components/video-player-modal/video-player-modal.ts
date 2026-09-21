@@ -11,6 +11,7 @@ import {
   output,
 } from '@angular/core';
 import { VideoPlayer } from '../video-player/video-player';
+import { VideoSource } from '../../data/content-api.types';
 
 @Component({
   selector: 'app-video-player-modal',
@@ -24,6 +25,7 @@ export class VideoPlayerModal implements OnDestroy {
   readonly src = input<string | null>(null);
   readonly loading = input<boolean>(false);
   readonly streamFormat = input<string>('mp4');
+  readonly sources = input<VideoSource[]>([]);
   readonly poster = input<string | null>(null);
   readonly title = input<string>('');
   readonly startTime = input<number>(0);

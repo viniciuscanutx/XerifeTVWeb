@@ -269,7 +269,7 @@
 
 @defer (when playerOpen()) {
   <app-video-player-modal [open]="playerOpen()" [src]="playerVideoUrl()" [loading]="resolvingVideo()"
-    [streamFormat]="playerStreamFormat()" [poster]="content.backdrop || content.poster" [title]="playerTitle()"
+    [streamFormat]="playerStreamFormat()" [sources]="playerSources()" [poster]="content.backdrop || content.poster" [title]="playerTitle()"
     [startTime]="savedStartTime()" [hasNextEpisode]="hasNextEpisode()" (timeUpdate)="onTimeUpdate($event)"
     (nextEpisode)="playNextEpisode()" (closed)="closePlayer()" (ended)="onVideoEnded()" />
 }
