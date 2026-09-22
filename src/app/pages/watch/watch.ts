@@ -314,13 +314,17 @@ export class Watch implements AfterViewInit, OnDestroy {
           .pipe(catchError(() => of(null)))
           .subscribe((video) => {
             this.resolvingVideo.set(false);
-            const url = video?.url || resolverUrl;
-            const format = video?.streamFormat || (url?.includes('.m3u8') ? 'hls' : 'mp4');
+            if (!video?.url) {
+              this.handleResolveFailure();
+              return;
+            }
+            const url = video.url;
+            const format = video.streamFormat || (url.includes('.m3u8') ? 'hls' : 'mp4');
             this.item.update((curr) => (curr ? {
               ...curr,
               videoUrl: url,
               streamFormat: format,
-              sources: video?.sources || [],
+              sources: video.sources || [],
             } : curr));
             this.playerOpen.set(true);
           });
@@ -481,9 +485,13 @@ export class Watch implements AfterViewInit, OnDestroy {
     this.resolvingVideo.set(true);
     this.api.resolveVideoUrl(resolverUrl).pipe(catchError(() => of(null))).subscribe((video) => {
       this.resolvingVideo.set(false);
-      const url = video?.url || resolverUrl;
-      const format = video?.streamFormat || (url?.includes('.m3u8') ? 'hls' : 'mp4');
-      const updatedEp = { ...ep, videoUrl: url, streamFormat: format, sources: video?.sources || [] };
+      if (!video?.url) {
+        this.handleResolveFailure();
+        return;
+      }
+      const url = video.url;
+      const format = video.streamFormat || (url.includes('.m3u8') ? 'hls' : 'mp4');
+      const updatedEp = { ...ep, videoUrl: url, streamFormat: format, sources: video.sources || [] };
       this.episodes.update((list) => list.map((e) => e.id === ep.id ? updatedEp : e));
       this.activeEpisode.set(updatedEp);
       if (openPlayerWhenDone) {
@@ -715,19 +723,28 @@ export class Watch implements AfterViewInit, OnDestroy {
     this.playerError.set(true);
   }
 
+  // Pré-resolve em segundo plano ao abrir a página. Em caso de falha, não seta nada
+  // (nada de usar a URL do resolver como vídeo) - o clique no play re-resolve e aí
+  // sim mostra o aviso pro usuário.
   private loadVideo(resolverUrl: string): void {
     this.resolvingVideo.set(true);
     this.api.resolveVideoUrl(resolverUrl).pipe(catchError(() => of(null))).subscribe((video) => {
       this.resolvingVideo.set(false);
-      const url = video?.url || resolverUrl;
-      const format = video?.streamFormat || (url.includes('.m3u8') ? 'hls' : 'mp4');
+      if (!video?.url) return;
+      const url = video.url;
+      const format = video.streamFormat || (url.includes('.m3u8') ? 'hls' : 'mp4');
       this.item.update((item) => item ? {
         ...item,
         videoUrl: url,
         streamFormat: format,
-        sources: video?.sources || [],
+        sources: video.sources || [],
       } : item);
     });
+  }
+
+  private handleResolveFailure(): void {
+    this.playerError.set(true);
+    alert('Não foi possível carregar o vídeo agora. Tente novamente em instantes.');
   }
 
   /** The episodes endpoint has shown up as a bare array, {episodes} and {items}. */
