@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { catchError, of } from 'rxjs';
 import { ContentApiService } from '../../shared/data/content-api.service';
-import type { ChannelCategoryGroup, ChannelResponse } from '../../shared/data/content-api.types';
+import type { ChannelCategoryGroup, ChannelResponse, VideoSource } from '../../shared/data/content-api.types';
 import { VideoPlayerModal } from '../../shared/components/video-player-modal/video-player-modal';
 import { FilterBar, FilterOption } from '../../shared/components/filter-bar/filter-bar';
 import { capitalizeFirstLetter } from '../../utils/utils';
@@ -28,6 +28,7 @@ export class ChannelsPage implements OnInit {
   readonly playerOpen = signal<boolean>(false);
   readonly streamUrl = signal<string | null>(null);
   readonly streamFormat = signal<string>('hls');
+  readonly streamSources = signal<VideoSource[]>([]);
   readonly resolvingStream = signal<boolean>(false);
 
   readonly categoriesList = computed<string[]>(() => {
@@ -162,6 +163,7 @@ export class ChannelsPage implements OnInit {
   playChannel(channel: ChannelResponse): void {
     this.activeChannel.set(channel);
     this.resolvingStream.set(true);
+    this.streamSources.set([]);
 
     const directUrl = channel.video?.url;
     const resolverPath = channel.urlResolverPath || channel.videoResolverURL;
@@ -174,6 +176,7 @@ export class ChannelsPage implements OnInit {
           this.resolvingStream.set(false);
           const finalUrl = res?.url || directUrl || resolverPath;
           const fmt = res?.streamFormat || (finalUrl.includes('.m3u8') ? 'hls' : 'mp4');
+          this.streamSources.set(res?.sources || []);
           this.streamUrl.set(finalUrl);
           this.streamFormat.set(fmt);
           this.playerOpen.set(true);
@@ -182,6 +185,7 @@ export class ChannelsPage implements OnInit {
       this.resolvingStream.set(false);
       this.streamUrl.set(directUrl);
       this.streamFormat.set(directUrl.includes('.m3u8') ? 'hls' : 'mp4');
+      this.streamSources.set(channel.video?.sources || []);
       this.playerOpen.set(true);
     } else {
       this.resolvingStream.set(false);
@@ -192,6 +196,7 @@ export class ChannelsPage implements OnInit {
   closePlayer(): void {
     this.playerOpen.set(false);
     this.streamUrl.set(null);
+    this.streamSources.set([]);
     this.activeChannel.set(null);
   }
 }

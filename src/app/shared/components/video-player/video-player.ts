@@ -109,7 +109,12 @@ export class VideoPlayer implements OnDestroy {
     );
     effect(() => {
       const sources = this.sources();
-      this.customQualities.set(this.toCustomQualities(sources));
+      const customQualities = this.toCustomQualities(sources);
+      this.customQualities.set(customQualities);
+
+      const currentUrl = this.src();
+      const currentSource = customQualities.find((quality) => quality.source?.url === currentUrl);
+      this.currentQuality.set(currentSource?.id || 'auto');
     });
     effect(() => {
       const url = this.src();
@@ -279,7 +284,7 @@ export class VideoPlayer implements OnDestroy {
           }))
           .sort((a: QualityLevel, b: QualityLevel) => parseInt(b.label) - parseInt(a.label));
         this.qualities.set(levels);
-        this.currentQuality.set('auto');
+        if (this.customQualities().length <= 1) this.currentQuality.set('auto');
       });
 
       hls.on(Hls.Events.ERROR, (_e: unknown, data: { type?: string }) => {
@@ -317,8 +322,8 @@ export class VideoPlayer implements OnDestroy {
     const unique = new Map<string, QualityLevel>();
     sources.forEach((source, index) => {
       if (!source?.url) return;
-      const label = source.quality || 'Auto';
-      const id = `source-${label.toLowerCase()}-${index}`;
+      const label = source.quality?.trim() || 'Auto';
+      const id = 'source-' + index + '-' + label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       unique.set(id, { id, label, source });
     });
     return [...unique.values()];

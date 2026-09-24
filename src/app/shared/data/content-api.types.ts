@@ -110,6 +110,7 @@ export interface ChannelResponse {
   video?: {
     url?: string;
     streamFormat?: string;
+    sources?: VideoSource[];
   };
   urlResolverPath?: string;
   videoResolverURL?: string;

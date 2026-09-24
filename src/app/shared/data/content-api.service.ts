@@ -38,15 +38,17 @@ export class ContentApiService {
 
   private normalizeResolvedVideo(payload: unknown, fallbackUrl: string): ResolvedVideoResponse {
     if (this.isResolvedVideo(payload)) {
+      const sources = this.normalizeSources(this.getRawSources(payload));
+      const matchedSource = sources.find((source) => source.url === payload.url);
       return {
         url: payload.url,
-        streamFormat: payload.streamFormat || this.getStreamFormat(payload.url),
-        sources: this.normalizeSources(payload.sources),
+        streamFormat: payload.streamFormat || (matchedSource ? matchedSource.streamFormat : this.getStreamFormat(payload.url)),
+        sources,
       };
     }
 
     if (this.isStreamCatalog(payload)) {
-      const sources = this.normalizeSources(payload.streams);
+      const sources = this.normalizeSources(this.getRawSources(payload));
       const primary = sources[0];
       if (primary) {
         return {
@@ -70,24 +72,25 @@ export class ContentApiService {
     for (const rawSource of rawSources) {
       if (!rawSource || typeof rawSource !== 'object') continue;
       const source = rawSource as Record<string, unknown>;
-      const url = this.extractStreamUrl(source['url']);
+      const url = this.extractStreamUrl(source['url'] || source['link'] || source['streamUrl'] || source['source']);
       if (!url) continue;
 
-      const quality = this.findQuality(source['quality'], source['name'], source['title'], url);
+      const quality = this.getSourceQuality(source, url);
+      const streamFormat = this.getSourceStreamFormat(source, url);
       const normalized: VideoSource = {
         url,
-        streamFormat: typeof source['streamFormat'] === 'string' && source['streamFormat']
-          ? source['streamFormat']
-          : this.getStreamFormat(url),
-        quality: quality.label,
+        streamFormat,
+        quality,
       };
 
-      if (!unique.has(quality.key)) unique.set(quality.key, normalized);
+      const key = url + '|' + streamFormat + '|' + quality.toLowerCase();
+      if (!unique.has(key)) unique.set(key, normalized);
     }
 
-    return [...unique.entries()]
-      .sort(([left], [right]) => this.qualityRank(right) - this.qualityRank(left))
-      .map(([, source]) => source);
+    return [...unique.values()].sort((left, right) => {
+      const qualityDifference = this.qualityRank(right.quality) - this.qualityRank(left.quality);
+      return qualityDifference || left.quality.localeCompare(right.quality);
+    });
   }
 
   private isResolvedVideo(payload: unknown): payload is ResolvedVideoResponse {
@@ -96,10 +99,37 @@ export class ContentApiService {
     return typeof value['url'] === 'string' && value['url'].length > 0;
   }
 
-  private isStreamCatalog(payload: unknown): payload is { streams: unknown[] } {
+  private isStreamCatalog(payload: unknown): payload is { streams: unknown[] | undefined; sources: unknown[] | undefined } {
     if (!payload || typeof payload !== 'object') return false;
     const value = payload as Record<string, unknown>;
-    return Array.isArray(value['streams']);
+    return Array.isArray(value['streams']) || Array.isArray(value['sources']);
+  }
+
+  private getRawSources(payload: unknown): unknown[] {
+    if (!payload || typeof payload !== 'object') return [];
+    const value = payload as Record<string, unknown>;
+    if (Array.isArray(value['sources'])) return value['sources'];
+    if (Array.isArray(value['streams'])) return value['streams'];
+    return [];
+  }
+
+  private getSourceQuality(source: Record<string, unknown>, url: string): string {
+    const explicitQuality = [source['quality'], source['label']]
+      .find((value): value is string => typeof value === 'string' && value.trim().length > 0);
+    if (explicitQuality) return explicitQuality.trim();
+
+    const quality = this.findQuality(source['name'], source['title'], source['provider'], url);
+    return quality.label;
+  }
+
+  private getSourceStreamFormat(source: Record<string, unknown>, url: string): string {
+    const explicitFormat = [source['streamFormat'], source['type'], source['format']]
+      .find((value): value is string => typeof value === 'string' && value.trim().length > 0);
+    if (!explicitFormat) return this.getStreamFormat(url);
+
+    const format = explicitFormat.trim().toLowerCase();
+    if (format === 'm3u8') return 'hls';
+    return format;
   }
 
   private extractStreamUrl(value: unknown): string {
@@ -128,8 +158,9 @@ export class ContentApiService {
   }
 
   private qualityRank(value: string): number {
-    if (value === '4k') return 2160;
-    const rank = Number.parseInt(value, 10);
+    const quality = this.findQuality(value).key;
+    if (quality === '4k') return 2160;
+    const rank = Number.parseInt(quality, 10);
     return Number.isFinite(rank) ? rank : 0;
   }
 
