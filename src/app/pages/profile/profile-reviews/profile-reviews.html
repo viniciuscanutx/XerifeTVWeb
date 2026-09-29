@@ -1,3 +1,4 @@
+@if (!isEmpty()) {
 <section aria-label="Minhas avaliações" [attr.aria-busy]="loading()">
   <header class="reviews-heading">
     <h2>Minhas avaliações</h2>
@@ -67,12 +68,6 @@
       }
     </div>
 
-    @if (!reviews().length) {
-      <div class="collection-empty">
-        <p>Você ainda não publicou nenhuma avaliação.</p>
-        <a routerLink="/movies">Explorar filmes</a>
-      </div>
-    }
     @if (totalPages() > 1) {
       <nav class="pagination" aria-label="Páginas de avaliações">
         <button type="button" [disabled]="page() === 1" (click)="page.set(page() - 1)">
@@ -86,6 +81,13 @@
     }
   }
 </section>
+} @else if (showEmptyState()) {
+  <section class="reviews-empty" role="status" aria-labelledby="reviews-empty-title">
+    <span class="reviews-empty__icon" aria-hidden="true"><i class="bi bi-star"></i></span>
+    <h2 id="reviews-empty-title" class="reviews-empty__title">Nenhuma avaliação por aqui</h2>
+    <p class="reviews-empty__text">Esse usuário ainda não fez nenhuma avaliação.</p>
+  </section>
+}
 <app-review-dialog
   [open]="reviewAction() !== null"
   [movieId]="reviewAction()?.review?.movie?.id ?? ''"

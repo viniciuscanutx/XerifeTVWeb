@@ -1,3 +1,4 @@
+@if (!isEmptyPreview()) {
 <section class="collection-section" [attr.aria-label]="title()" [attr.aria-busy]="loading()">
   <header class="collection-heading">
     <h2>{{ title() }}</h2>
@@ -95,3 +96,4 @@
     }
   }
 </section>
+}

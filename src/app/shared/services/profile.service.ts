@@ -32,9 +32,15 @@ export class ProfileService {
     return this.http.get<SiteProfile>(`${this.base}/Profile`);
   }
 
-  updateProfile(name: string, avatarUrl: string | null, avatarGiphyId: string | null = null) {
+  // O PUT substitui o perfil inteiro: campos omitidos são apagados, por isso todos são obrigatórios.
+  updateProfile(
+    name: string,
+    avatarUrl: string | null,
+    avatarGiphyId: string | null,
+    bannerUrl: string | null,
+  ) {
     return this.http
-      .put<SiteProfile>(`${this.base}/Profile`, { name, avatarUrl, avatarGiphyId })
+      .put<SiteProfile>(`${this.base}/Profile`, { name, avatarUrl, avatarGiphyId, bannerUrl })
       .pipe(
         tap((profile) => {
           this.auth.currentUser.update((user) =>

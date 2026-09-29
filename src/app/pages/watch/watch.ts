@@ -16,7 +16,7 @@ import { catchError, map, of, switchMap } from 'rxjs';
 import { MediaItem } from '../../shared/components/media-card/media-card';
 import { MediaCarousel } from '../../shared/components/media-carousel/media-carousel';
 import { ContentApiService } from '../../shared/data/content-api.service';
-import { VideoSource } from '../../shared/data/content-api.types';
+import { ResolvedVideoResponse, VideoSource } from '../../shared/data/content-api.types';
 import { seriesToMediaItem, toMediaItem } from '../../shared/data/content-api.mapper';
 import { capitalizeFirstLetter } from '../../utils/utils';
 import { VideoPlayerModal } from '../../shared/components/video-player-modal/video-player-modal';
@@ -91,6 +91,8 @@ export class Watch implements AfterViewInit, OnDestroy {
 
   private lastPlayback: { currentTime: number; duration: number } | null = null;
   private lastProgressSaveAt = 0;
+  /** Resolver que gerou o `videoUrl` atual do filme, para reaproveitar o pré-resolve. */
+  private movieResolvedFrom: string | null = null;
 
   readonly item = signal<WatchItem | null>(null);
   readonly recommended = signal<MediaItem[]>([]);
@@ -119,7 +121,11 @@ export class Watch implements AfterViewInit, OnDestroy {
   readonly canScrollEpisodesRight = signal<boolean>(false);
 
   readonly moreMenuOpen = signal<boolean>(false);
-  readonly detailsExpanded = signal<boolean>(false);
+  readonly detailsExpanded = signal<boolean>(true);
+
+  private readonly reviewsSectionRef = viewChild<ElementRef<HTMLElement>>('reviewsSection');
+  /** Esconde o FAB de avaliações quando a seção já está visível na tela. */
+  readonly reviewsInView = signal(false);
 
   readonly contentLabel = computed(() => this.item()?.type === 'series' ? 'Série' : 'Filme');
 
@@ -308,6 +314,15 @@ export class Watch implements AfterViewInit, OnDestroy {
       this.activeEpisode.set(null);
       const resolverUrl = this.getActiveResolverUrl(item);
       if (resolverUrl) {
+        // Pré-resolve da página já terminou para este áudio: abre direto com a URL pronta.
+        if (item.videoUrl && this.movieResolvedFrom === resolverUrl) {
+          this.playerOpen.set(true);
+          return;
+        }
+
+        // Abre o player na hora; o modal mostra o loading até a URL ser resolvida.
+        this.item.update((curr) => (curr ? { ...curr, videoUrl: null, sources: [] } : curr));
+        this.playerOpen.set(true);
         this.resolvingVideo.set(true);
         this.api
           .resolveVideoUrl(resolverUrl)
@@ -318,15 +333,7 @@ export class Watch implements AfterViewInit, OnDestroy {
               this.handleResolveFailure();
               return;
             }
-            const url = video.url;
-            const format = video.streamFormat || (url.includes('.m3u8') ? 'hls' : 'mp4');
-            this.item.update((curr) => (curr ? {
-              ...curr,
-              videoUrl: url,
-              streamFormat: format,
-              sources: video.sources || [],
-            } : curr));
-            this.playerOpen.set(true);
+            this.applyMovieVideo(resolverUrl, video);
           });
       } else {
         alert('Nenhum vídeo disponível para este conteúdo.');
@@ -482,6 +489,12 @@ export class Watch implements AfterViewInit, OnDestroy {
       return;
     }
 
+    if (openPlayerWhenDone) {
+      // Abre o player na hora; o modal mostra o loading até a URL do episódio ser resolvida.
+      this.activeEpisode.set({ ...ep, videoUrl: null, sources: [] });
+      this.playerOpen.set(true);
+    }
+
     this.resolvingVideo.set(true);
     this.api.resolveVideoUrl(resolverUrl).pipe(catchError(() => of(null))).subscribe((video) => {
       this.resolvingVideo.set(false);
@@ -489,14 +502,14 @@ export class Watch implements AfterViewInit, OnDestroy {
         this.handleResolveFailure();
         return;
       }
+      // Ignora a resposta se o usuário já trocou de episódio enquanto resolvia.
+      const active = this.activeEpisode();
+      if (active && active.id !== ep.id) return;
       const url = video.url;
       const format = video.streamFormat || (url.includes('.m3u8') ? 'hls' : 'mp4');
       const updatedEp = { ...ep, videoUrl: url, streamFormat: format, sources: video.sources || [] };
       this.episodes.update((list) => list.map((e) => e.id === ep.id ? updatedEp : e));
       this.activeEpisode.set(updatedEp);
-      if (openPlayerWhenDone) {
-        this.playerOpen.set(true);
-      }
     });
   }
 
@@ -532,6 +545,16 @@ export class Watch implements AfterViewInit, OnDestroy {
   }
 
   constructor() {
+    effect((onCleanup) => {
+      const section = this.reviewsSectionRef()?.nativeElement;
+      if (!section) return;
+      const observer = new IntersectionObserver(([entry]) =>
+        this.reviewsInView.set(entry.isIntersecting),
+      );
+      observer.observe(section);
+      onCleanup(() => observer.disconnect());
+    });
+
     effect(() => {
       this.episodes();
       const el = this.episodesRailRef()?.nativeElement ?? null;
@@ -618,6 +641,14 @@ export class Watch implements AfterViewInit, OnDestroy {
 
   toggleDetails(): void {
     this.detailsExpanded.update((open) => !open);
+  }
+
+  scrollToReviews(): void {
+    const section = this.reviewsSectionRef()?.nativeElement;
+    if (!section) return;
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    section.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    section.focus({ preventScroll: true });
   }
 
   /** Falls back to the plain text title when the logo image cannot be loaded. */
@@ -731,18 +762,29 @@ export class Watch implements AfterViewInit, OnDestroy {
     this.api.resolveVideoUrl(resolverUrl).pipe(catchError(() => of(null))).subscribe((video) => {
       this.resolvingVideo.set(false);
       if (!video?.url) return;
-      const url = video.url;
-      const format = video.streamFormat || (url.includes('.m3u8') ? 'hls' : 'mp4');
-      this.item.update((item) => item ? {
-        ...item,
-        videoUrl: url,
-        streamFormat: format,
-        sources: video.sources || [],
-      } : item);
+      // Ignora respostas de um áudio que já foi trocado.
+      if (resolverUrl !== this.getActiveResolverUrl(this.item())) return;
+      this.applyMovieVideo(resolverUrl, video);
     });
   }
 
+  private applyMovieVideo(
+    resolverUrl: string,
+    video: ResolvedVideoResponse,
+  ): void {
+    const url = video.url;
+    const format = video.streamFormat || (url.includes('.m3u8') ? 'hls' : 'mp4');
+    this.movieResolvedFrom = resolverUrl;
+    this.item.update((item) => item ? {
+      ...item,
+      videoUrl: url,
+      streamFormat: format,
+      sources: video.sources || [],
+    } : item);
+  }
+
   private handleResolveFailure(): void {
+    this.playerOpen.set(false);
     this.playerError.set(true);
     alert('Não foi possível carregar o vídeo agora. Tente novamente em instantes.');
   }

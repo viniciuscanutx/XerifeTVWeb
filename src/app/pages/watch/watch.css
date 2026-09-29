@@ -37,6 +37,17 @@
   transition: background 0.2s ease;
 }
 
+/* No desktop o hero começa atrás da navbar fixa (68px), transparente nesta página. */
+@media (min-width: 769px) {
+  .top-left-btn {
+    top: calc(68px + 28px);
+  }
+
+  .top-right-rating {
+    top: calc(68px + 24px);
+  }
+}
+
 .top-left-btn:active {
   background: rgba(0, 0, 0, 0.7);
 }
@@ -844,5 +855,96 @@
   .details-label,
   .details-value {
     font-size: 14px;
+  }
+}
+
+/* ===== Atalho para as avaliações ===== */
+.reviews-section {
+  /* Desconta a navbar fixa ao rolar até a seção. */
+  scroll-margin-top: calc(68px + 20px);
+}
+
+.reviews-section:focus {
+  outline: none;
+}
+
+.reviews-fab {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 22px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #9b68ff 0%, #763bff 100%);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(118, 59, 255, 0.45), 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.2s ease;
+}
+
+.reviews-fab i {
+  font-size: 18px;
+}
+
+.reviews-fab.is-hidden {
+  opacity: 0;
+  transform: translateY(16px) scale(0.9);
+  pointer-events: none;
+}
+
+.reviews-fab:focus-visible {
+  outline: 2px solid #d6bbff;
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .reviews-fab:not(.is-hidden):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 36px rgba(118, 59, 255, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.reviews-fab:not(.is-hidden):active {
+  transform: scale(0.96);
+}
+
+@media (max-width: 768px) {
+  .reviews-section {
+    scroll-margin-top: 16px;
+  }
+
+  /* Só o ícone, acima da tab bar do mobile. */
+  .reviews-fab {
+    right: 16px;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    width: 52px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .reviews-fab__label {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reviews-fab {
+    transition: opacity 0.2s ease;
+  }
+
+  .reviews-fab.is-hidden,
+  .reviews-fab:not(.is-hidden):hover,
+  .reviews-fab:not(.is-hidden):active {
+    transform: none;
   }
 }

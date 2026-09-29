@@ -67,12 +67,8 @@
       }
 
       <div class="action-buttons-hero">
-        <button class="btn-reproduzir" (click)="openPlayer()" [disabled]="resolvingVideo()">
-          @if (resolvingVideo()) {
-          <i class="bi bi-hourglass-split"></i> Carregando vídeo...
-          } @else {
-          <i class="bi bi-play-fill"></i> {{ playButtonLabel() }}
-          }
+        <button class="btn-reproduzir" (click)="openPlayer()">
+          <i class="bi bi-play-fill" aria-hidden="true"></i> {{ playButtonLabel() }}
         </button>
 
         <app-favorite-button [movieId]="content.id" [contentType]="content.type === 'series' ? 'series' : 'movie'" />
@@ -254,7 +250,9 @@
       }
     </section>
 
-    <section class="page-section"><app-movie-reviews [movieId]="content.id" [contentType]="content.type === 'series' ? 'series' : 'movie'" /></section>
+    <section class="page-section reviews-section" #reviewsSection id="avaliacoes" tabindex="-1" aria-label="Avaliações">
+      <app-movie-reviews [movieId]="content.id" [contentType]="content.type === 'series' ? 'series' : 'movie'" />
+    </section>
   </div>
 
   @if (recommended().length > 0) {
@@ -266,6 +264,20 @@
   }
 
 </main>
+
+<!-- Fora do <main>: o transform da animação de entrada prenderia o position: fixed ao conteúdo. -->
+<button
+  type="button"
+  class="reviews-fab"
+  [class.is-hidden]="reviewsInView() || playerOpen()"
+  [attr.aria-hidden]="reviewsInView() || playerOpen()"
+  [attr.tabindex]="reviewsInView() || playerOpen() ? -1 : null"
+  (click)="scrollToReviews()"
+  aria-label="Ir para as avaliações"
+>
+  <i class="bi bi-star-fill" aria-hidden="true"></i>
+  <span class="reviews-fab__label">Avaliações</span>
+</button>
 
 @defer (when playerOpen()) {
   <app-video-player-modal [open]="playerOpen()" [src]="playerVideoUrl()" [loading]="resolvingVideo()"

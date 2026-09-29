@@ -107,3 +107,10 @@ body.vpm-open .mobile-tab-bar,
 body.vpm-open app-footer {
   display: none !important;
 }
+
+/* Páginas com fundo imersivo (perfil / título): o conteúdo começa atrás da navbar transparente. */
+@media (min-width: 769px) {
+  body.nav-immersive .app-main-content {
+    padding-top: 0;
+  }
+}

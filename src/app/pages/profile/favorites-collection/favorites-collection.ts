@@ -1,4 +1,4 @@
-import { Component, DestroyRef, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Favorite, ProfileContentType } from '../../../shared/models/profile.model';
@@ -14,6 +14,8 @@ import { FeedbackService } from '../../../shared/services/feedback.service';
 export class FavoritesCollection {
   readonly contentType = input.required<ProfileContentType>();
   readonly preview = input(false);
+  /** Emite ao terminar cada carregamento (sucesso ou erro). */
+  readonly loaded = output<void>();
   readonly favorites = signal<Favorite[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
@@ -23,6 +25,9 @@ export class FavoritesCollection {
   readonly hasMore = signal(false);
   readonly title = computed(() =>
     this.contentType() === 'series' ? 'Séries favoritas' : 'Filmes favoritos',
+  );
+  readonly isEmptyPreview = computed(
+    () => this.preview() && !this.loading() && !this.error() && !this.favorites().length,
   );
   private readonly api = inject(ProfileService);
   private readonly feedback = inject(FeedbackService);
@@ -54,10 +59,12 @@ export class FavoritesCollection {
           this.favorites.set(data.items);
           this.hasMore.set(data.hasMore);
           this.loading.set(false);
+          this.loaded.emit();
         },
         error: (error) => {
           this.error.set(profileError(error));
           this.loading.set(false);
+          this.loaded.emit();
         },
       });
       onCleanup(() => subscription.unsubscribe());

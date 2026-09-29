@@ -7,6 +7,7 @@ export interface SiteProfile {
   name: string;
   avatarUrl: string | null;
   avatarGiphyId?: string | null;
+  bannerUrl?: string | null;
   joinedAt: string;
   badges?: ProfileBadge[];
   selectedBadge?: ProfileBadge | null;

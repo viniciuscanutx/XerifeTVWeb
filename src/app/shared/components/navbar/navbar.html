@@ -1,5 +1,9 @@
 @if (!isLoginPage()) {
-<header class="desktop-navbar">
+<header
+  class="desktop-navbar"
+  [class.is-immersive]="isImmersivePage()"
+  [class.is-transparent]="isTransparent()"
+>
   <div class="navbar-container">
     <div class="nav-left">
       <a class="brand-logo" routerLink="/">

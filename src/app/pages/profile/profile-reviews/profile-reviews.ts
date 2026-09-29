@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SiteReview } from '../../../shared/models/profile.model';
 import { ProfileService, profileError } from '../../../shared/services/profile.service';
@@ -21,6 +21,10 @@ export class ProfileReviews {
   readonly visibleReviews = computed(() =>
     this.reviews().slice((this.page() - 1) * 5, this.page() * 5),
   );
+  readonly showEmptyState = input(false);
+  /** Emite ao terminar cada carregamento (sucesso ou erro). */
+  readonly loaded = output<void>();
+  readonly isEmpty = computed(() => !this.loading() && !this.error() && !this.reviews().length);
   readonly reviewAction = signal<{ review: SiteReview; mode: 'edit' | 'delete' } | null>(null);
   private readonly api = inject(ProfileService);
   private readonly revision = signal(0);
@@ -35,10 +39,12 @@ export class ProfileReviews {
           this.reviews.set(data.items.slice(0, 10));
           this.page.set(Math.min(this.page(), Math.max(1, Math.ceil(data.items.length / 5))));
           this.loading.set(false);
+          this.loaded.emit();
         },
         error: (error) => {
           this.error.set(profileError(error));
           this.loading.set(false);
+          this.loaded.emit();
         },
       });
       onCleanup(() => subscription.unsubscribe());

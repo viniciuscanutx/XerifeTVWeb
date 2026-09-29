@@ -18,6 +18,21 @@ h2 {
   font-weight: 700;
   margin: 0;
 }
+.collection-heading h2,
+.reviews-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.collection-heading h2::before,
+.reviews-heading h2::before {
+  content: '';
+  flex-shrink: 0;
+  width: 4px;
+  height: 0.95em;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, #d4b5ff, #8350d5);
+}
 a {
   color: #d4b5ff;
   text-decoration: none;
