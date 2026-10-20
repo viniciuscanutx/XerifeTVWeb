@@ -42,7 +42,7 @@
     color: #d6bbff;
     transform: translateY(3px);
   }
-  .episodes-arrow:hover i {
+  .episodes-arrow:enabled:hover i {
     transform: scale(1.2);
   }
 }
@@ -55,7 +55,7 @@
   transform: scale(0.97);
 }
 .details-toggle:active i,
-.episodes-arrow:active i {
+.episodes-arrow:enabled:active i {
   transform: scale(0.85);
 }
 .episode-card:active {

@@ -96,89 +96,131 @@
   <div class="content-overlay">
 
     @if (content.type === 'series') {
-    <section class="page-section episodes-section">
-      <div class="season-picker">
-        <select class="season-select" [value]="selectedSeason()" (change)="onSeasonChange($event)"
-          aria-label="Selecionar temporada">
-          @for (s of seasonsList(); track s) {
-          <option [value]="s">Temporada {{ s }}</option>
-          }
-        </select>
-        <i class="bi bi-chevron-down season-select__icon" aria-hidden="true"></i>
-      </div>
-
-      @if (loadingEpisodes()) {
-      <div class="episodes-loading">
-        <i class="bi bi-hourglass-split"></i> Carregando episódios...
-      </div>
-      }
-      @else if (episodes().length === 0) {
-      <div class="episodes-empty">
-        Nenhum episódio encontrado para esta temporada.
-      </div>
-      }
-      @else {
-      <div class="episodes-rail-wrapper">
-        @if (canScrollEpisodesLeft()) {
-        <button class="episodes-arrow episodes-arrow--left" type="button" (click)="scrollEpisodesLeft()"
-          aria-label="Episódios anteriores">
-          <i class="bi bi-chevron-left"></i>
-        </button>
-        }
-
-        <div class="episodes-rail" #episodesRail>
-          @for (ep of episodes(); track ep.id || ep.number; let idx = $index) {
-        <article class="episode-card" (click)="playEpisode(ep)" (keydown.enter)="playEpisode(ep)"
-          tabindex="0" role="button" [attr.aria-label]="episodeTag(ep, idx) + ' ' + ep.title">
-          <img class="episode-card__img" [src]="ep.bannerUrl || content.backdrop || content.poster" [alt]="ep.title"
-            loading="lazy" />
-          <div class="episode-card__scrim"></div>
-
-          @if (isEpisodeWatched(ep)) {
-          <span class="episode-card__watched" aria-label="Assistido">
-            <i class="bi bi-check-lg"></i>
-          </span>
-          }
-
-          <div class="episode-card__play">
-            <i class="bi bi-play-fill"></i>
-          </div>
-
-          <div class="episode-card__body">
-            <div class="episode-card__tags">
-              <span class="episode-card__tag">{{ episodeTag(ep, idx) }}</span>
-              @if (ep.highQuality) {
-              <span class="badge-4k">4K</span>
-              }
-            </div>
-
-            <h3 class="episode-card__title">{{ ep.title }}</h3>
-
-            @if (ep.overview) {
-            <p class="episode-card__overview">{{ ep.overview }}</p>
-            }
-
-            <div class="episode-card__footer">
-              @if (ep.duration) {
-              <span class="episode-card__duration"><i class="bi bi-clock"></i> {{ ep.duration }}</span>
-              }
-              @if (formatEpisodeDate(ep.airDate); as airDate) {
-              <span class="episode-card__date">{{ airDate }}</span>
-              }
-            </div>
-          </div>
-        </article>
+    <section class="page-section episodes-section" aria-labelledby="episodes-heading">
+      <div class="episodes-header">
+        <div class="episodes-heading">
+          <h2 class="section-title" id="episodes-heading">Episódios</h2>
+          @if (!loadingEpisodes() && !episodesError()) {
+          <span class="episodes-count">{{ episodes().length }} {{ episodes().length === 1 ? 'episódio' : 'episódios' }}</span>
           }
         </div>
 
-        @if (canScrollEpisodesRight()) {
-        <button class="episodes-arrow episodes-arrow--right" type="button" (click)="scrollEpisodesRight()"
-          aria-label="Próximos episódios">
-          <i class="bi bi-chevron-right"></i>
-        </button>
+        <div class="episodes-controls">
+          <div class="season-picker">
+            <select class="season-select" [value]="selectedSeason()" (change)="onSeasonChange($event)"
+              aria-label="Selecionar temporada" aria-controls="episodes-list">
+              @for (s of seasonsList(); track s) {
+              <option [value]="s">Temporada {{ s }}</option>
+              }
+            </select>
+            <i class="bi bi-chevron-down season-select__icon" aria-hidden="true"></i>
+          </div>
+
+          @if (!loadingEpisodes() && !episodesError() && episodes().length > 0) {
+          <div class="episodes-navigation" role="group" aria-label="Navegar pelos episódios">
+            <button class="episodes-arrow" type="button" (click)="scrollEpisodesLeft()"
+              [disabled]="!canScrollEpisodesLeft()" aria-label="Episódios anteriores" aria-controls="episodes-list">
+              <i class="bi bi-chevron-left" aria-hidden="true"></i>
+            </button>
+            <button class="episodes-arrow" type="button" (click)="scrollEpisodesRight()"
+              [disabled]="!canScrollEpisodesRight()" aria-label="Próximos episódios" aria-controls="episodes-list">
+              <i class="bi bi-chevron-right" aria-hidden="true"></i>
+            </button>
+          </div>
+          }
+        </div>
+      </div>
+
+      <div class="episodes-status" role="status" aria-live="polite" aria-atomic="true">
+        @if (loadingEpisodes()) {
+        <span>Carregando episódios da temporada {{ selectedSeason() }}...</span>
+        } @else if (episodesError(); as errorMessage) {
+        <span>{{ errorMessage }}</span>
+        } @else {
+        <span class="visually-hidden">{{ episodes().length }} episódios na temporada {{ selectedSeason() }}.</span>
         }
       </div>
-      }
+
+      <div id="episodes-list" [attr.aria-busy]="loadingEpisodes()">
+        @if (loadingEpisodes()) {
+        <div class="episodes-skeletons" aria-hidden="true">
+          @for (placeholder of [1, 2, 3, 4]; track placeholder) {
+          <div class="episode-skeleton">
+            <span class="episode-skeleton__image"></span>
+            <span class="episode-skeleton__line"></span>
+            <span class="episode-skeleton__line episode-skeleton__line--short"></span>
+          </div>
+          }
+        </div>
+        } @else if (episodesError()) {
+        <div class="episodes-empty">
+          <i class="bi bi-cloud-slash" aria-hidden="true"></i>
+          <button type="button" class="episodes-retry" (click)="selectSeason(selectedSeason())">
+            <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Tentar novamente
+          </button>
+        </div>
+        } @else if (episodes().length === 0) {
+        <div class="episodes-empty">
+          <i class="bi bi-collection-play" aria-hidden="true"></i>
+          <p>Nenhum episódio disponível nesta temporada.</p>
+          @if (seasonsList().length > 1) {
+          <span>Selecione outra temporada para continuar.</span>
+          }
+        </div>
+        } @else {
+        <div class="episodes-rail-wrapper">
+          <div class="episodes-rail" #episodesRail>
+            @for (ep of episodes(); track ep.id || ep.number; let idx = $index) {
+            <article class="episode-card">
+              <div class="episode-card__thumbnail">
+                <img class="episode-card__img" [src]="ep.bannerUrl || content.backdrop || content.poster" alt=""
+                  loading="lazy" decoding="async" />
+
+                @if (isEpisodeWatched(ep)) {
+                <span class="episode-card__watched">
+                  <i class="bi bi-check-lg" aria-hidden="true"></i>
+                  <span>Assistido</span>
+                </span>
+                }
+
+                <span class="episode-card__play" aria-hidden="true">
+                  <i class="bi bi-play-fill"></i>
+                </span>
+              </div>
+
+              <div class="episode-card__body">
+                <div class="episode-card__tags">
+                  <span class="episode-card__tag">{{ episodeTag(ep, idx) }}</span>
+                  @if (ep.highQuality) {
+                  <span class="badge-4k">4K</span>
+                  }
+                </div>
+
+                <h3 class="episode-card__title">{{ ep.title }}</h3>
+
+                @if (ep.overview) {
+                <p class="episode-card__overview">{{ ep.overview }}</p>
+                }
+
+                <div class="episode-card__footer">
+                  @if (ep.duration) {
+                  <span class="episode-card__duration"><i class="bi bi-clock" aria-hidden="true"></i> {{ ep.duration }}</span>
+                  }
+                  @if (formatEpisodeDate(ep.airDate); as airDate) {
+                  <time class="episode-card__date" [attr.datetime]="ep.airDate">{{ airDate }}</time>
+                  }
+                </div>
+              </div>
+
+              <button class="episode-card__action" type="button" (click)="playEpisode(ep)"
+                [attr.aria-label]="'Reproduzir ' + episodeTag(ep, idx) + ': ' + ep.title + (isEpisodeWatched(ep) ? ', assistido' : '')">
+              </button>
+            </article>
+            }
+          </div>
+        </div>
+        }
+      </div>
     </section>
     }
 
