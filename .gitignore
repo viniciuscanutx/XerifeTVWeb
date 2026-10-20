@@ -44,3 +44,5 @@ __screenshots__/
 Thumbs.db
 
 .claude/
+# APK gerado pelo publish-android.ps1
+/publish-android

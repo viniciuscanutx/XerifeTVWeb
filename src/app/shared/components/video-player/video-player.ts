@@ -51,6 +51,8 @@ export class VideoPlayer implements OnDestroy {
 
   private hls: Hls | null = null;
   private rafId: number | null = null;
+  // URL da fonte carregada (com hls.js o video.src vira blob:, então não serve pra isso)
+  private loadedSourceUrl: string | null = null;
 
   readonly videoState = signal<VideoState>('idle');
   readonly errorMessage = signal<string | null>(null);
@@ -265,6 +267,7 @@ export class VideoPlayer implements OnDestroy {
 
     this.hls?.destroy();
     this.hls = null;
+    this.loadedSourceUrl = url;
 
     const format = (formatValue || '').toLowerCase();
     const isHls =
@@ -287,10 +290,12 @@ export class VideoPlayer implements OnDestroy {
         if (this.customQualities().length <= 1) this.currentQuality.set('auto');
       });
 
-      hls.on(Hls.Events.ERROR, (_e: unknown, data: { type?: string }) => {
-        if (data?.type === 'networkError') return;
+      hls.on(Hls.Events.ERROR, (_e: unknown, data: { type?: string; fatal?: boolean }) => {
+        // Não fatal o hls.js recupera sozinho; fatal (inclusive de rede) segue pra próxima fonte
+        if (!data?.fatal) return;
         hls.destroy();
         this.hls = null;
+        if (this.tryNextCustomQuality(video)) return;
         this.videoState.set('error');
         this.errorMessage.set('Não foi possível carregar o vídeo.');
       });
@@ -330,7 +335,7 @@ export class VideoPlayer implements OnDestroy {
   }
 
   private tryNextCustomQuality(video: HTMLVideoElement): boolean {
-    const currentUrl = video.currentSrc || video.src;
+    const currentUrl = this.loadedSourceUrl || video.currentSrc || video.src;
     const currentIndex = this.customQualities().findIndex(
       (quality) => quality.source?.url === currentUrl,
     );

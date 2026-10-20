@@ -1,7 +1,8 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
-import { Observable, catchError, map } from 'rxjs';
+import { Observable, catchError, from, map } from 'rxjs';
+import { isNativeApp, resolveOnDevice, toRawResolverUrl } from './native-stream-resolver';
 import type {
   MovieResponse,
   SeriesSummaryResponse,
@@ -31,9 +32,24 @@ export class ContentApiService {
   resolveVideoUrl(resolverUrl?: string | null): Observable<ResolvedVideoResponse> {
     const url = this.resolveMediaUrl(resolverUrl);
     if (!url) throw new Error('A URL de reprodução não foi informada.');
-    return this.http.get<unknown>(url).pipe(
+
+    const serverResolve = this.http.get<unknown>(url).pipe(
       map((payload) => this.normalizeResolvedVideo(payload, url)),
     );
+
+    // App (desktop/Android): resolve no aparelho (catálogo + vídeo direto), sem o Render no caminho.
+    // Se falhar (ex: CMS sem o ResolveUrlFxRaw), cai no resolver do servidor.
+    const rawResolverUrl = isNativeApp() ? toRawResolverUrl(url) : null;
+    if (rawResolverUrl) {
+      return from(resolveOnDevice(rawResolverUrl)).pipe(
+        catchError((error: unknown) => {
+          console.warn('Resolução no aparelho falhou, usando o servidor:', error);
+          return serverResolve;
+        }),
+      );
+    }
+
+    return serverResolve;
   }
 
   private normalizeResolvedVideo(payload: unknown, fallbackUrl: string): ResolvedVideoResponse {

@@ -123,6 +123,23 @@ app-video-player,
   gap: .75rem;
   color: rgba(255, 255, 255, .75);
   font-size: .9rem;
+  position: relative;
+}
+
+/* Banner escurecido atrás do spinner, enquadrado como o poster do <video> (contain) */
+.vpm__loading-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: .45;
+  pointer-events: none;
+}
+
+.vpm__loading > .spinner-border,
+.vpm__loading > span {
+  position: relative;
 }
 
 /* ====== TABLET & SMALL DESKTOP ====== */

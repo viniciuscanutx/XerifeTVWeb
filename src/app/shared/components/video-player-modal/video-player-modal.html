@@ -26,6 +26,10 @@
           />
         } @else {
           <div class="vpm__loading" role="status" aria-live="polite">
+            <!-- Banner atrás do spinner enquanto o link é resolvido (igual ao poster do player) -->
+            @if (poster(); as posterUrl) {
+              <img class="vpm__loading-poster" [src]="posterUrl" alt="" aria-hidden="true" />
+            }
             <div class="spinner-border text-light" aria-hidden="true"></div>
             <span>Carregando vídeo...</span>
           </div>

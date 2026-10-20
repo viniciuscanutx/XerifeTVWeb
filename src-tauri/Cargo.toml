@@ -1,0 +1,16 @@
+[package]
+name = "xerifetv"
+version = "0.1.0"
+description = "XerifeTV - app desktop"
+edition = "2021"
+
+[lib]
+# Nome diferente do binário pra não conflitar no Windows (padrão do template do Tauri)
+name = "xerifetv_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }

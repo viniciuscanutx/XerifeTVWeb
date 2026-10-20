@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mesmo fundo do app (variavel color-bg em src/styles.css): pinta a area atras das barras do sistema -->
+    <color name="app_background">#0B0B0F</color>
+</resources>

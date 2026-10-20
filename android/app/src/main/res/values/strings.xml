@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">XerifeTV</string>
+    <string name="title_activity_main">XerifeTV</string>
+    <string name="package_name">com.xerifetv.app</string>
+    <string name="custom_url_scheme">com.xerifetv.app</string>
+</resources>

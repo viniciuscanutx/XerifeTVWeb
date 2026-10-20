@@ -1,0 +1,3 @@
+# Build do Rust e schemas gerados pelo Tauri
+/target/
+/gen/schemas

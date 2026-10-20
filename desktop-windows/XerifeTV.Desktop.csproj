@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    App Windows do XerifeTV: janela WebView2 que carrega o build do Angular.
+    Solução provisória até o Tauri (src-tauri/) ser compilado - mesmo comportamento:
+    catálogo e vídeo saem do aparelho de quem assiste, sem o Render no caminho.
+    Para gerar o app: ver publish-desktop.ps1.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>XerifeTV</AssemblyName>
+    <RootNamespace>XerifeTV.Desktop</RootNamespace>
+    <ApplicationIcon>..\public\ico.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
+  </ItemGroup>
+
+</Project>
