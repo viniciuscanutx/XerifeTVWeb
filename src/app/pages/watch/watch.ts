@@ -12,7 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { Subscription, catchError, map, of, switchMap } from 'rxjs';
 import { MediaItem } from '../../shared/components/media-card/media-card';
 import { MediaCarousel } from '../../shared/components/media-carousel/media-carousel';
 import { ContentApiService } from '../../shared/data/content-api.service';
@@ -79,7 +79,7 @@ const PARENTAL_BADGES: Record<string, ParentalBadge> = {
   selector: 'app-watch',
   imports: [RouterLink, VideoPlayerModal, MediaCarousel, FavoriteButton, MovieReviews],
   templateUrl: './watch.html',
-  styleUrls: ['./watch.css', './watch-motion.css'],
+  styleUrls: ['./watch.css', './watch-episodes.css', './watch-motion.css'],
 })
 export class Watch implements AfterViewInit, OnDestroy {
   readonly capitalizeFirstLetter = capitalizeFirstLetter;
@@ -113,10 +113,13 @@ export class Watch implements AfterViewInit, OnDestroy {
   readonly selectedSeason = signal<number>(1);
   readonly episodes = signal<EpisodeItem[]>([]);
   readonly loadingEpisodes = signal<boolean>(false);
+  readonly episodesError = signal<string | null>(null);
   readonly activeEpisode = signal<EpisodeItem | null>(null);
 
+  private episodesSubscription: Subscription | null = null;
   private readonly episodesRailRef = viewChild<ElementRef<HTMLElement>>('episodesRail');
   private episodesRailEl: HTMLElement | null = null;
+  private episodesResizeObserver: ResizeObserver | null = null;
   readonly canScrollEpisodesLeft = signal<boolean>(false);
   readonly canScrollEpisodesRight = signal<boolean>(false);
 
@@ -353,6 +356,7 @@ export class Watch implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.flushProgress();
+    this.episodesSubscription?.unsubscribe();
     this.detachEpisodesRail();
   }
 
@@ -361,10 +365,16 @@ export class Watch implements AfterViewInit, OnDestroy {
     this.detachEpisodesRail();
     this.episodesRailEl = el;
     el?.addEventListener('scroll', this.updateEpisodesScrollState, { passive: true });
+    if (el) {
+      this.episodesResizeObserver = new ResizeObserver(this.updateEpisodesScrollState);
+      this.episodesResizeObserver.observe(el);
+    }
   }
 
   private detachEpisodesRail(): void {
     this.episodesRailEl?.removeEventListener('scroll', this.updateEpisodesScrollState);
+    this.episodesResizeObserver?.disconnect();
+    this.episodesResizeObserver = null;
     this.episodesRailEl = null;
   }
 
@@ -381,13 +391,21 @@ export class Watch implements AfterViewInit, OnDestroy {
   };
 
   scrollEpisodesLeft(): void {
-    const el = this.episodesRailRef()?.nativeElement;
-    el?.scrollBy({ left: -el.clientWidth * 0.85, behavior: 'smooth' });
+    this.scrollEpisodes(-1);
   }
 
   scrollEpisodesRight(): void {
+    this.scrollEpisodes(1);
+  }
+
+  private scrollEpisodes(direction: -1 | 1): void {
     const el = this.episodesRailRef()?.nativeElement;
-    el?.scrollBy({ left: el.clientWidth * 0.85, behavior: 'smooth' });
+    if (!el) return;
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollBy({
+      left: direction * el.clientWidth * 0.85,
+      behavior: reduceMotion ? 'auto' : 'smooth',
+    });
   }
 
   onTimeUpdate(evt: { currentTime: number; duration: number }): void {
@@ -454,7 +472,6 @@ export class Watch implements AfterViewInit, OnDestroy {
   }
 
   selectSeason(season: number): void {
-    this.selectedSeason.set(season);
     const seriesId = this.item()?.id;
     if (seriesId) {
       this.loadEpisodes(seriesId, season);
@@ -529,17 +546,7 @@ export class Watch implements AfterViewInit, OnDestroy {
       const currentSeason = ep.season ?? this.selectedSeason();
       if (currentSeason < seasons) {
         const nextSeason = currentSeason + 1;
-        this.selectedSeason.set(nextSeason);
-        this.loadingEpisodes.set(true);
-        this.api.getEpisodes(item.id, nextSeason).pipe(catchError(() => of([]))).subscribe((res: any) => {
-          this.loadingEpisodes.set(false);
-          const nextList = this.mapEpisodes(res, nextSeason);
-
-          this.episodes.set(nextList);
-          if (nextList.length > 0) {
-            this.playEpisode(nextList[0]);
-          }
-        });
+        this.loadEpisodes(item.id, nextSeason, true);
       }
     }
   }
@@ -818,15 +825,26 @@ export class Watch implements AfterViewInit, OnDestroy {
     }));
   }
 
-  private loadEpisodes(seriesId: string, season: number): void {
+  private loadEpisodes(seriesId: string, season: number, playFirstEpisode = false): void {
+    this.episodesSubscription?.unsubscribe();
+    this.selectedSeason.set(season);
     this.loadingEpisodes.set(true);
-    this.api.getEpisodes(seriesId, season).pipe(
-      catchError(() => of([])),
+    this.episodesError.set(null);
+    this.episodesSubscription = this.api.getEpisodes(seriesId, season).pipe(
+      catchError(() => {
+        this.episodesError.set('Não foi possível carregar os episódios. Tente novamente.');
+        return of([]);
+      }),
     ).subscribe((res: any) => {
       this.loadingEpisodes.set(false);
       const list = this.mapEpisodes(res, season);
 
       this.episodes.set(list);
+
+      if (playFirstEpisode) {
+        if (list[0]) this.playEpisode(list[0]);
+        return;
+      }
 
       if (this.autoPlayRequested()) {
         this.autoPlayRequested.set(false);
