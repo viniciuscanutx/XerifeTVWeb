@@ -1,8 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
-import { Observable, catchError, from, map } from 'rxjs';
-import { isNativeApp, resolveOnDevice, toRawResolverUrl } from './native-stream-resolver';
+import { Observable, catchError, from, map, of, switchMap } from 'rxjs';
+import { fetchCatalogInBrowser, isNativeApp, resolveOnDevice, toRawResolverUrl } from './native-stream-resolver';
+import type { BrowserCatalog } from './native-stream-resolver';
 import type {
   MovieResponse,
   SeriesSummaryResponse,
@@ -37,10 +38,12 @@ export class ContentApiService {
       map((payload) => this.normalizeResolvedVideo(payload, url)),
     );
 
+    const rawResolverUrl = toRawResolverUrl(url);
+    if (!rawResolverUrl) return serverResolve;
+
     // App (desktop/Android): resolve no aparelho (catálogo + vídeo direto), sem o Render no caminho.
     // Se falhar (ex: CMS sem o ResolveUrlFxRaw), cai no resolver do servidor.
-    const rawResolverUrl = isNativeApp() ? toRawResolverUrl(url) : null;
-    if (rawResolverUrl) {
+    if (isNativeApp()) {
       return from(resolveOnDevice(rawResolverUrl)).pipe(
         catchError((error: unknown) => {
           console.warn('Resolução no aparelho falhou, usando o servidor:', error);
@@ -49,7 +52,38 @@ export class ContentApiService {
       );
     }
 
-    return serverResolve;
+    // Site: catálogo no navegador e teste das fontes no CMS; link que não é catálogo segue no servidor
+    const browserResolve = from(fetchCatalogInBrowser(rawResolverUrl)).pipe(
+      switchMap((catalog) => {
+        if (!catalog) return of(null);
+        // Provedor que bloqueia o Render também no teste das fontes (ex: bestcine): toca direto
+        return this.resolveCatalogOnServer(url, catalog).pipe(
+          catchError((error: unknown) => {
+            console.warn('Teste das fontes no servidor falhou, tocando direto do navegador:', error);
+            return of(catalog.browserVideo);
+          }),
+        );
+      }),
+      catchError((error: unknown) => {
+        console.warn('Resolução pelo navegador falhou, usando o servidor:', error);
+        return of(null);
+      }),
+    );
+
+    return browserResolve.pipe(switchMap((video) => (video ? of(video) : serverResolve)));
+  }
+
+  private resolveCatalogOnServer(
+    resolverUrl: string,
+    catalog: BrowserCatalog,
+  ): Observable<ResolvedVideoResponse> {
+    const params = new URL(resolverUrl).searchParams;
+    const endpoint = new URL('MediaDeliveryProfiles/ResolveUrlFxFromPayload', environment.apiUrl).toString();
+    const body = { uf: params.get('uf'), sf: params.get('sf'), catalogUrl: catalog.catalogUrl, payload: catalog.payload };
+
+    return this.http.post<unknown>(endpoint, body).pipe(
+      map((payload) => this.normalizeResolvedVideo(payload, resolverUrl)),
+    );
   }
 
   private normalizeResolvedVideo(payload: unknown, fallbackUrl: string): ResolvedVideoResponse {

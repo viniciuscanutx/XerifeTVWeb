@@ -1,10 +1,11 @@
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import type { ResolvedVideoResponse, VideoSource } from './content-api.types';
 
-// Resolução de vídeo no próprio aparelho, usada só nos apps (Tauri, casca .NET ou Android).
+// Resolução de vídeo no próprio aparelho (apps Tauri, casca .NET ou Android) e busca do
+// catálogo no navegador (site).
 //
-// No site, o resolver do CMS (Render) busca o catálogo, testa as fontes e passa os
-// vídeos http:// pelo proxy dele - e o Render é bloqueado por IP de datacenter.
+// No site, o navegador busca o catálogo (o provedor bloqueia o IP de datacenter do Render)
+// e o CMS só testa as fontes e passa os vídeos http:// pelo proxy dele.
 // No app, o WebView roda com CORS desligado e origem http (sem mixed content), então
 // o catálogo e o vídeo saem direto do IP de quem assiste, como no localhost.
 
@@ -63,6 +64,27 @@ export async function resolveOnDevice(rawResolverUrl: string): Promise<ResolvedV
   return { url: sources[0].url, streamFormat: sources[0].streamFormat, sources };
 }
 
+export interface BrowserCatalog {
+  catalogUrl: string;
+  payload: string;
+  // Fontes montadas aqui, para tocar direto se o teste no servidor falhar (igual ao CMS)
+  browserVideo: ResolvedVideoResponse | null;
+}
+
+// Site: devolve o catálogo buscado no navegador; null quando o link não é catálogo
+export async function fetchCatalogInBrowser(rawResolverUrl: string): Promise<BrowserCatalog | null> {
+  const raw = await fetchJson<RawResolveResponse>(rawResolverUrl);
+  if (!isCatalogUrl(raw.url)) return null;
+
+  const { streams, catalogUrl, payload } = await fetchFirstCatalogWithStreams(raw);
+  const sources = buildSources(streams, getProviderName(catalogUrl, raw.catalogProviders));
+  const browserVideo = sources.length > 0
+    ? { url: sources[0].url, streamFormat: sources[0].streamFormat, sources }
+    : null;
+
+  return { catalogUrl, payload, browserVideo };
+}
+
 function isCatalogUrl(url: string): boolean {
   const normalized = url.toLowerCase();
   return normalized.includes('/stream/') || normalized.split('?')[0].endsWith('.json');
@@ -86,30 +108,33 @@ function buildCatalogCandidates(raw: RawResolveResponse): string[] {
 // provedor sem o título), mas respeita a ordem de fallback: vale o primeiro da lista que tiver.
 async function fetchFirstCatalogWithStreams(
   raw: RawResolveResponse,
-): Promise<{ streams: CatalogStream[]; catalogUrl: string }> {
+): Promise<{ streams: CatalogStream[]; catalogUrl: string; payload: string }> {
   const attempts = buildCatalogCandidates(raw).map((catalogUrl) => ({
     catalogUrl,
-    streams: fetchCatalogStreams(catalogUrl, raw.catalogCacheUrl).catch((error: unknown) => {
+    catalog: fetchCatalog(catalogUrl, raw.catalogCacheUrl).catch((error: unknown) => {
       console.warn('Catálogo indisponível:', catalogUrl, error);
-      return [] as CatalogStream[];
+      return { payload: '', streams: [] as CatalogStream[] };
     }),
   }));
 
   for (const attempt of attempts) {
-    const streams = await attempt.streams;
-    if (hasPlayableStream(streams)) return { streams, catalogUrl: attempt.catalogUrl };
+    const { payload, streams } = await attempt.catalog;
+    if (hasPlayableStream(streams)) return { streams, catalogUrl: attempt.catalogUrl, payload };
   }
   throw new Error('Nenhum provedor possui este título.');
 }
 
 // Igual ao _VideoModal do CMS: KV do Worker primeiro; no miss, busca direto no provedor e
 // grava no Worker pra próxima vez (catálogo "frio" do bestcine leva ~10s).
-async function fetchCatalogStreams(catalogUrl: string, cacheUrl?: string): Promise<CatalogStream[]> {
+async function fetchCatalog(
+  catalogUrl: string,
+  cacheUrl?: string,
+): Promise<{ payload: string; streams: CatalogStream[] }> {
   if (cacheUrl) {
     try {
       const cached = await fetchText(`${cacheUrl}/?kvOnly=1&url=${encodeURIComponent(catalogUrl)}`, CATALOG_CACHE_TIMEOUT_MS);
       const cachedStreams = parseStreams(cached);
-      if (hasPlayableStream(cachedStreams)) return cachedStreams;
+      if (hasPlayableStream(cachedStreams)) return { payload: cached, streams: cachedStreams };
     } catch {
       // Miss ou Worker fora: segue pro provedor
     }
@@ -121,7 +146,7 @@ async function fetchCatalogStreams(catalogUrl: string, cacheUrl?: string): Promi
   if (cacheUrl && hasPlayableStream(streams)) {
     postJson(`${cacheUrl}/?url=${encodeURIComponent(catalogUrl)}`, payload).catch(() => {});
   }
-  return streams;
+  return { payload, streams };
 }
 
 function parseStreams(payload: string): CatalogStream[] {
