@@ -3,6 +3,6 @@ const isProduction = true;
 export const environment = {
   production: isProduction,
   apiUrl: isProduction
-    ? 'https://chelifetv.onrender.com/'
+    ? 'https://chelifetvcms.vertraweb.app/'
     : 'http://localhost:5003/',
 };
