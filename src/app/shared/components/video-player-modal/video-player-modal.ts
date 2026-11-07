@@ -30,6 +30,8 @@ export class VideoPlayerModal implements OnDestroy {
   readonly title = input<string>('');
   readonly startTime = input<number>(0);
   readonly hasNextEpisode = input<boolean>(false);
+  readonly subtitleUrl = input<string | null>(null);
+  readonly subtitleEnabled = input<boolean>(true);
 
   readonly closed = output<void>();
   readonly timeUpdate = output<{ currentTime: number; duration: number }>();

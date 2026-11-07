@@ -56,6 +56,9 @@
         } @else if (hasSubtitledVersion()) {
         <span class="meta-audio" aria-label="Legendado" title="Legendado">LEG</span>
         }
+        @if (hasSubtitles()) {
+        <span class="meta-audio" aria-label="Legendas disponíveis" title="Legendas disponíveis">CC</span>
+        }
       </div>
 
       @if (genresLabel()) {
@@ -324,7 +327,8 @@
 @defer (when playerOpen()) {
   <app-video-player-modal [open]="playerOpen()" [src]="playerVideoUrl()" [loading]="resolvingVideo()"
     [streamFormat]="playerStreamFormat()" [sources]="playerSources()" [poster]="content.backdrop || content.poster" [title]="playerTitle()"
-    [startTime]="savedStartTime()" [hasNextEpisode]="hasNextEpisode()" (timeUpdate)="onTimeUpdate($event)"
+    [startTime]="savedStartTime()" [hasNextEpisode]="hasNextEpisode()"
+    [subtitleUrl]="playerSubtitleUrl()" [subtitleEnabled]="subtitleEnabledByDefault()" (timeUpdate)="onTimeUpdate($event)"
     (nextEpisode)="playNextEpisode()" (closed)="closePlayer()" (ended)="onVideoEnded()" />
 }
 

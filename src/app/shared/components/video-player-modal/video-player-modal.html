@@ -20,6 +20,8 @@
             [autoplay]="true"
             [startTime]="startTime()"
             [hasNextEpisode]="hasNextEpisode()"
+            [subtitleUrl]="subtitleUrl()"
+            [subtitleEnabled]="subtitleEnabled()"
             (timeUpdate)="timeUpdate.emit($event)"
             (nextEpisode)="nextEpisode.emit()"
             (ended)="ended.emit()"

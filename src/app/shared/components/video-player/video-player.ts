@@ -10,13 +10,24 @@ import {
   input,
   output,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import Hls from 'hls.js';
+import type { Subscription } from 'rxjs';
 import type { VideoSource } from '../../data/content-api.types';
+import type { SubtitleCue } from '../../data/subtitle-parser';
+import { SubtitleService } from '../../services/subtitle.service';
 
 type VideoState = 'idle' | 'loading' | 'playing' | 'paused' | 'ended' | 'error';
+type SubtitleStatus = 'none' | 'loading' | 'ready' | 'error';
+
+interface PlacedCue {
+  cue: VTTCue;
+  start: number;
+  end: number;
+}
 
 interface QualityLevel {
   id: string;
@@ -34,6 +45,7 @@ interface QualityLevel {
 })
 export class VideoPlayer implements OnDestroy {
   private readonly zone = inject(NgZone);
+  private readonly subtitles = inject(SubtitleService);
 
   readonly src = input.required<string>();
   readonly streamFormat = input<string>('mp4');
@@ -42,6 +54,8 @@ export class VideoPlayer implements OnDestroy {
   readonly autoplay = input<boolean>(true);
   readonly startTime = input<number>(0);
   readonly hasNextEpisode = input<boolean>(false);
+  readonly subtitleUrl = input<string | null>(null);
+  readonly subtitleEnabled = input<boolean>(true);
 
   readonly timeUpdate = output<{ currentTime: number; duration: number }>();
   readonly nextEpisode = output<void>();
@@ -53,6 +67,10 @@ export class VideoPlayer implements OnDestroy {
   private rafId: number | null = null;
   // URL da fonte carregada (com hls.js o video.src vira blob:, então não serve pra isso)
   private loadedSourceUrl: string | null = null;
+  private subtitleTrack: TextTrack | null = null;
+  private subtitleCues: SubtitleCue[] = [];
+  private placedCues: PlacedCue[] = [];
+  private subtitleRequest: Subscription | null = null;
 
   readonly videoState = signal<VideoState>('idle');
   readonly errorMessage = signal<string | null>(null);
@@ -80,6 +98,15 @@ export class VideoPlayer implements OnDestroy {
   });
   readonly showSettings = signal(false);
   readonly showVolume = signal(false);
+  readonly subtitleStatus = signal<SubtitleStatus>('none');
+  readonly subtitleVisible = signal(false);
+  readonly subtitleOffset = signal(0);
+  readonly showSubtitleMenu = signal(false);
+  readonly hasSubtitle = computed(() => !!this.subtitleUrl());
+  readonly subtitleOffsetLabel = computed(() => {
+    const offset = this.subtitleOffset();
+    return `${offset > 0 ? '+' : ''}${offset.toFixed(1).replace('.', ',')}s`;
+  });
 
   private hideControlsTimeout: ReturnType<typeof setTimeout> | null = null;
   private unbindHandlers: (() => void) | null = null;
@@ -123,10 +150,23 @@ export class VideoPlayer implements OnDestroy {
       const format = this.streamFormat();
       this.loadVideo(url, format);
     });
+    effect(() => {
+      const video = this.videoRef()?.nativeElement;
+      const url = this.subtitleUrl();
+      if (video) untracked(() => this.loadSubtitle(video, url));
+    });
+    effect(() => {
+      const enabled = this.subtitleEnabled();
+      untracked(() => {
+        if (this.subtitleStatus() === 'ready') this.setSubtitleVisible(enabled);
+      });
+    });
   }
 
   ngOnDestroy(): void {
     this.cleanup();
+    this.subtitleRequest?.unsubscribe();
+    this.clearSubtitleCues();
     this.exitCssFullscreen();
     this.fullscreenEvents.forEach((evt) =>
       document.removeEventListener(evt, this.onFullscreenChange)
@@ -166,6 +206,7 @@ export class VideoPlayer implements OnDestroy {
       this.errorMessage.set('Não foi possível carregar o vídeo.');
     };
     const onLoadedMetadata = () => {
+      this.restoreSubtitleCues(video);
       this.duration.set(video.duration || 0);
       this.volume.set(video.volume);
       this.isMuted.set(video.muted);
@@ -320,6 +361,107 @@ export class VideoPlayer implements OnDestroy {
 
     if (options.autoplay ?? this.autoplay()) {
       this.videoPromisePlay(video);
+    }
+  }
+
+  private loadSubtitle(video: HTMLVideoElement, url: string | null): void {
+    this.subtitleRequest?.unsubscribe();
+    this.subtitleRequest = null;
+    this.clearSubtitleCues();
+    this.subtitleCues = [];
+    this.subtitleOffset.set(0);
+    this.setSubtitleVisible(false);
+
+    if (!url) {
+      this.subtitleStatus.set('none');
+      return;
+    }
+
+    this.subtitleStatus.set('loading');
+    this.subtitleRequest = this.subtitles.load(url).subscribe({
+      next: (cues) => {
+        if (cues.length === 0) {
+          this.subtitleStatus.set('error');
+          return;
+        }
+        this.subtitleCues = cues;
+        this.placeSubtitleCues(video);
+        this.subtitleStatus.set('ready');
+        this.setSubtitleVisible(this.subtitleEnabled());
+      },
+      error: () => this.subtitleStatus.set('error'),
+    });
+  }
+
+  // Trilha criada uma vez por <video>: addTextTrack não tem remoção, então só trocamos as falas
+  private ensureSubtitleTrack(video: HTMLVideoElement): TextTrack {
+    if (!this.subtitleTrack) {
+      this.subtitleTrack = video.addTextTrack('subtitles', 'Português', 'pt');
+      this.subtitleTrack.mode = 'hidden';
+    }
+    return this.subtitleTrack;
+  }
+
+  private placeSubtitleCues(video: HTMLVideoElement): void {
+    const track = this.ensureSubtitleTrack(video);
+    const offset = this.subtitleOffset();
+    this.placedCues = this.subtitleCues.map(({ start, end, text }) => {
+      const cue = new VTTCue(Math.max(0, start + offset), Math.max(0, end + offset), text);
+      track.addCue(cue);
+      return { cue, start, end };
+    });
+  }
+
+  // O hls.js limpa e desativa as trilhas do <video> ao trocar de fonte; recoloca as falas
+  private restoreSubtitleCues(video: HTMLVideoElement): void {
+    if (this.subtitleStatus() !== 'ready') return;
+    this.clearSubtitleCues();
+    this.placeSubtitleCues(video);
+    this.setSubtitleVisible(this.subtitleVisible());
+  }
+
+  private clearSubtitleCues(): void {
+    const track = this.subtitleTrack;
+    this.placedCues = [];
+    if (!track) return;
+    // Com a trilha desativada track.cues vem null
+    if (track.mode === 'disabled') track.mode = 'hidden';
+    const cues = track.cues;
+    if (cues) for (let i = cues.length - 1; i >= 0; i--) track.removeCue(cues[i]);
+  }
+
+  private setSubtitleVisible(visible: boolean): void {
+    this.subtitleVisible.set(visible);
+    if (this.subtitleTrack) this.subtitleTrack.mode = visible ? 'showing' : 'hidden';
+  }
+
+  toggleSubtitleMenu(): void {
+    this.showSettings.set(false);
+    this.showSubtitleMenu.update((open) => !open);
+  }
+
+  selectSubtitle(visible: boolean): void {
+    if (this.subtitleStatus() !== 'ready') return;
+    this.setSubtitleVisible(visible);
+  }
+
+  retrySubtitle(): void {
+    const video = this.videoRef()?.nativeElement;
+    if (video) this.loadSubtitle(video, this.subtitleUrl());
+  }
+
+  // Desloca todas as falas pelo offset (negativo = aparece antes, positivo = depois)
+  changeSubtitleOffset(delta: number): void {
+    const offset = delta === 0 ? 0 : Math.round((this.subtitleOffset() + delta) * 10) / 10;
+    this.subtitleOffset.set(offset);
+    this.placedCues.forEach(({ cue, start, end }) => {
+      cue.startTime = Math.max(0, start + offset);
+      cue.endTime = Math.max(0, end + offset);
+    });
+    // Reaplica o modo para o navegador redesenhar a fala ativa com o novo tempo
+    if (this.subtitleTrack && this.subtitleVisible()) {
+      this.subtitleTrack.mode = 'hidden';
+      this.subtitleTrack.mode = 'showing';
     }
   }
 

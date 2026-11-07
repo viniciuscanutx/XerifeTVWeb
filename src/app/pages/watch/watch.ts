@@ -42,6 +42,7 @@ export interface EpisodeItem {
   streamFormat?: string;
   sources?: VideoSource[];
   highQuality?: boolean;
+  subtitleUrl?: string | null;
 }
 
 export interface WatchItem extends MediaItem {
@@ -54,6 +55,7 @@ export interface WatchItem extends MediaItem {
   sources?: VideoSource[];
   totalSeasons?: number;
   highQuality?: boolean;
+  subtitleUrl?: string | null;
   logoUrl?: string | null;
   originalLanguageName?: string | null;
   countryName?: string | null;
@@ -192,6 +194,21 @@ export class Watch implements AfterViewInit, OnDestroy {
     return this.hasDubbedVersion() && this.hasSubtitledVersion();
   });
 
+  readonly hasSubtitles = computed(() => {
+    const ep = this.activeEpisode();
+    const item = this.item();
+    if (item?.type === 'series') {
+      if (ep) return !!ep.subtitleUrl;
+      return this.episodes().some((e) => !!e.subtitleUrl);
+    }
+    return !!item?.subtitleUrl;
+  });
+
+  // Com DUB e LEG disponíveis, a legenda só abre ligada na versão legendada
+  readonly subtitleEnabledByDefault = computed(() => {
+    return this.selectedAudio() === 'sub' || !this.hasBothAudioVersions();
+  });
+
   readonly isHighQuality = computed(() => {
     const ep = this.activeEpisode();
     const item = this.item();
@@ -242,6 +259,13 @@ export class Watch implements AfterViewInit, OnDestroy {
       return ep.streamFormat || 'mp4';
     }
     return item?.streamFormat || 'mp4';
+  });
+
+  readonly playerSubtitleUrl = computed(() => {
+    const ep = this.activeEpisode();
+    const item = this.item();
+    if (item?.type === 'series') return ep?.subtitleUrl || null;
+    return item?.subtitleUrl || null;
   });
 
   readonly playerSources = computed(() => {
@@ -604,6 +628,7 @@ export class Watch implements AfterViewInit, OnDestroy {
               videoResolverUrl: movie.videoResolverURL || movie.urlResolverPath,
               alternativeVideoResolverUrl: movie.alternativeVideoResolverURL || movie.alternativeVideoResolverUrl,
               highQuality: movie.highQuality ?? movie.HighQuality ?? false,
+              subtitleUrl: movie.subtitleURL || movie.subtitleUrl || null,
             })));
       }),
       catchError(() => of(null)),
@@ -822,6 +847,7 @@ export class Watch implements AfterViewInit, OnDestroy {
       streamFormat: ep.video?.streamFormat || 'mp4',
       sources: ep.video?.sources || ep.sources || [],
       highQuality: ep.highQuality ?? ep.HighQuality ?? false,
+      subtitleUrl: ep.subtitleURL || ep.subtitleUrl || null,
     }));
   }
 

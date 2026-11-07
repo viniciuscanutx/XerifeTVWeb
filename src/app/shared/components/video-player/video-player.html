@@ -88,6 +88,38 @@
           </button>
         }
 
+        @if (hasSubtitle()) {
+          <div class="vp__settings">
+            <button type="button" class="vp__btn" [class.is-active]="subtitleVisible()" (click)="toggleSubtitleMenu()" aria-label="Legendas" aria-haspopup="true" [attr.aria-expanded]="showSubtitleMenu()">
+              <i class="bi" [class.bi-badge-cc-fill]="subtitleVisible()" [class.bi-badge-cc]="!subtitleVisible()"></i>
+            </button>
+            @if (showSubtitleMenu()) {
+              <div class="vp__menu" (mouseleave)="showSubtitleMenu.set(false)">
+                <div class="vp__menu-title">Legendas</div>
+                @switch (subtitleStatus()) {
+                  @case ('loading') {
+                    <p class="vp__menu-note" role="status">Carregando legenda...</p>
+                  }
+                  @case ('error') {
+                    <p class="vp__menu-note" role="alert">Não foi possível carregar a legenda.</p>
+                    <button type="button" class="vp__menu-item" (click)="retrySubtitle()">Tentar novamente</button>
+                  }
+                  @case ('ready') {
+                    <button type="button" class="vp__menu-item" [class.is-active]="!subtitleVisible()" [attr.aria-pressed]="!subtitleVisible()" (click)="selectSubtitle(false)">Desativada</button>
+                    <button type="button" class="vp__menu-item" [class.is-active]="subtitleVisible()" [attr.aria-pressed]="subtitleVisible()" (click)="selectSubtitle(true)">Português</button>
+                    <div class="vp__menu-title vp__menu-title--static">Sincronizar</div>
+                    <div class="vp__sync" role="group" aria-label="Sincronizar legenda">
+                      <button type="button" class="vp__sync-btn" (click)="changeSubtitleOffset(-0.5)" aria-label="Adiantar legenda em 0,5 segundo" title="Adiantar 0,5s">−0,5s</button>
+                      <button type="button" class="vp__sync-btn vp__sync-btn--value" (click)="changeSubtitleOffset(0)" [attr.aria-label]="'Zerar ajuste da legenda, atual ' + subtitleOffsetLabel()" title="Zerar ajuste">{{ subtitleOffsetLabel() }}</button>
+                      <button type="button" class="vp__sync-btn" (click)="changeSubtitleOffset(0.5)" aria-label="Atrasar legenda em 0,5 segundo" title="Atrasar 0,5s">+0,5s</button>
+                    </div>
+                  }
+                }
+              </div>
+            }
+          </div>
+        }
+
         @if (qualityOptions().length > 1) {
           <div class="vp__settings">
             <button type="button" class="vp__btn vp__btn--settings" (click)="showSettings.set(!showSettings())" aria-label="Qualidade" aria-haspopup="menu" [attr.aria-expanded]="showSettings()">
