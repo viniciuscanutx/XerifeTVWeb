@@ -46,3 +46,6 @@ Thumbs.db
 .claude/
 # APK gerado pelo publish-android.ps1
 /publish-android
+
+# Configuração local (gerada por scripts/write-config.mjs a partir de variáveis de ambiente)
+/public/config.json

@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { SitePermission, User } from '../models/user.model';
+import { RuntimeConfigService } from './runtime-config.service';
 
 interface MeResponse {
   user: User;
@@ -32,7 +32,12 @@ function deleteCookie(name: string): void {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly base = `${environment.apiUrl.replace(/\/?$/, '/')}Api/Auth`;
+  private readonly runtime = inject(RuntimeConfigService);
+
+  /** Lido sob demanda: `config.json` só é carregado no app initializer. */
+  private get base(): string {
+    return `${this.runtime.apiUrl}Api/Auth`;
+  }
 
   readonly currentUser = signal<User | null>(null);
   readonly isAuthenticated = computed(() => !!this.currentUser());

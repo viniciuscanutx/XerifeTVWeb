@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, effect, inject, signal } from '@angular/core';
 import { AuthService } from './auth.service';
 import { Observable, tap } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface WatchProgress {
   contentId: string;
@@ -24,7 +24,12 @@ export type UpsertWatchProgressDto = Omit<WatchProgress, 'progressPercentage' | 
 
 @Injectable({ providedIn: 'root' })
 export class WatchProgressService {
-  private readonly base = `${environment.apiUrl.replace(/\/?$/, '/')}Api/WatchProgress`;
+  private readonly runtime = inject(RuntimeConfigService);
+
+  /** Lido sob demanda: `config.json` só é carregado no app initializer. */
+  private get base(): string {
+    return `${this.runtime.apiUrl}Api/WatchProgress`;
+  }
 
   private readonly auth = inject(AuthService);
   readonly items = signal<WatchProgress[]>([]);

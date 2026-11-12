@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../../environments/environment';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { RuntimeConfigService } from '../services/runtime-config.service';
 import { Observable, catchError, from, map, of, switchMap } from 'rxjs';
 import { fetchCatalogInBrowser, isNativeApp, resolveOnDevice, toRawResolverUrl } from './native-stream-resolver';
 import type { BrowserCatalog } from './native-stream-resolver';
@@ -21,13 +21,18 @@ import type {
 
 @Injectable({ providedIn: 'root' })
 export class ContentApiService {
-  private readonly base = `${environment.apiUrl.replace(/\/?$/, '/')}Api/Content/v2`;
+  private readonly runtime = inject(RuntimeConfigService);
+
+  /** Lido sob demanda: `config.json` só é carregado no app initializer. */
+  private get base(): string {
+    return `${this.runtime.apiUrl}Api/Content/v2`;
+  }
 
   constructor(private http: HttpClient) { }
 
   resolveMediaUrl(url?: string | null): string | null {
     if (!url) return null;
-    return /^https?:\/\//i.test(url) ? url : new URL(url, environment.apiUrl).toString();
+    return /^https?:\/\//i.test(url) ? url : new URL(url, this.runtime.apiUrl).toString();
   }
 
   resolveVideoUrl(resolverUrl?: string | null): Observable<ResolvedVideoResponse> {
@@ -78,7 +83,7 @@ export class ContentApiService {
     catalog: BrowserCatalog,
   ): Observable<ResolvedVideoResponse> {
     const params = new URL(resolverUrl).searchParams;
-    const endpoint = new URL('MediaDeliveryProfiles/ResolveUrlFxFromPayload', environment.apiUrl).toString();
+    const endpoint = new URL('MediaDeliveryProfiles/ResolveUrlFxFromPayload', this.runtime.apiUrl).toString();
     const body = { uf: params.get('uf'), sf: params.get('sf'), catalogUrl: catalog.catalogUrl, payload: catalog.payload };
 
     return this.http.post<unknown>(endpoint, body).pipe(
@@ -221,7 +226,7 @@ export class ContentApiService {
   }
 
   getChannels(limit = 200): Observable<any> {
-    const v1Base = `${environment.apiUrl.replace(/\/?$/, '/')}Api/Content/v2/Channels`;
+    const v1Base = `${this.runtime.apiUrl}Api/Content/v2/Channels`;
     let params = new HttpParams().set('limit', limit);
 
     return this.http.get<any>(v1Base, { params });

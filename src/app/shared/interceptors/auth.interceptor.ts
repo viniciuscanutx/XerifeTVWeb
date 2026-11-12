@@ -2,8 +2,8 @@ import { HttpErrorResponse, HttpInterceptorFn, HttpRequest } from '@angular/comm
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, switchMap, throwError } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { AuthService } from '../services/auth.service';
+import { RuntimeConfigService } from '../services/runtime-config.service';
 
 const NO_RETRY_ENDPOINTS = ['Api/Auth/Login', 'Api/Auth/Refresh'];
 
@@ -13,8 +13,9 @@ const withAuthHeader = (req: HttpRequest<unknown>, token: string | null): HttpRe
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const runtime = inject(RuntimeConfigService);
 
-  const isApiRequest = req.url.startsWith(environment.apiUrl);
+  const isApiRequest = req.url.startsWith(runtime.apiUrl);
   const isNoRetryEndpoint = NO_RETRY_ENDPOINTS.some((endpoint) => req.url.includes(endpoint));
 
   const authReq = isApiRequest ? withAuthHeader(req, authService.getAccessToken()) : req;

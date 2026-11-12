@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, finalize, map, of, shareReplay, throwError, timeout } from 'rxjs';
-import { giphyConfig } from '../../environments/giphy.config';
+import { RuntimeConfigService } from './runtime-config.service';
 
 interface GiphyImage {
   url?: string;
@@ -53,15 +53,19 @@ export function giphyError(error: unknown): string {
 @Injectable({ providedIn: 'root' })
 export class GiphyService {
   private readonly http = inject(HttpClient);
+  private readonly runtime = inject(RuntimeConfigService);
   private readonly base = 'https://api.giphy.com/v1/gifs';
   private readonly pending = new Map<string, Observable<GiphyGif | null>>();
-  readonly configured = !!giphyConfig.apiKey.trim();
+
+  get configured(): boolean {
+    return this.runtime.giphyApiKey.length > 0;
+  }
 
   search(query: string, offset = 0): Observable<GiphyPage> {
     if (!this.configured) return throwError(() => new Error('GIPHY indisponível'));
     const searching = !!query.trim();
     const params: Record<string, string | number> = {
-      api_key: giphyConfig.apiKey,
+      api_key: this.runtime.giphyApiKey,
       limit: 24,
       offset,
       rating: 'g',
@@ -98,7 +102,7 @@ export class GiphyService {
     if (pending) return pending;
     const request = this.http
       .get<GiphyResponse<GiphyResponseGif>>(this.base + '/' + encodeURIComponent(id), {
-        params: { api_key: giphyConfig.apiKey, rating: 'g' },
+        params: { api_key: this.runtime.giphyApiKey, rating: 'g' },
       })
       .pipe(
         timeout(15000),

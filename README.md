@@ -1,8 +1,8 @@
 <div align="center">
 
-# XerifeTV Web
+# ChelifeTV Web
 
-**Plataforma de streaming de filmes e séries — o front-end do ecossistema XerifeTV.**
+**Plataforma de streaming de filmes e séries — o front-end do ecossistema ChelifeTV.**
 
 Catálogo com destaque, player HLS com várias fontes e qualidades, progresso sincronizado,
 perfil personalizável com capa, badges, favoritos e avaliações.
@@ -14,7 +14,7 @@ perfil personalizável com capa, badges, favoritos e avaliações.
 ![hls.js](https://img.shields.io/badge/hls.js-1.5-9b68ff)
 ![Vitest](https://img.shields.io/badge/Vitest-4-6e9f18?logo=vitest&logoColor=white)
 
-<img src="docs/screenshots/home.png" alt="Página inicial do XerifeTV com título em destaque e a seção Continuar Assistindo" width="100%" />
+<img src="docs/screenshots/home.png" alt="Página inicial do ChelifeTV com título em destaque e a seção Continuar Assistindo" width="100%" />
 
 </div>
 
@@ -128,22 +128,45 @@ A aplicação sobe em **http://localhost:4300**.
 
 ## Configuração
 
-A URL da API fica em `src/app/environments/environment.ts`:
+A URL da API e a chave do GIPHY **não ficam no código**: vêm de variáveis de ambiente do host.
 
-```ts
-const isProduction = true;
+| Variável | Para que serve |
+| --- | --- |
+| `API_URL` | URL base do ChelifeTV.CMS (ex.: `https://chelifetvcms.vertraweb.app/`) |
+| `GIPHY_API_KEY` | Chave da API do GIPHY usada no picker de GIFs do perfil |
 
-export const environment = {
-  production: isProduction,
-  apiUrl: isProduction
-    ? '' // API publicada
-    : 'http://localhost:5003/',         // XerifeTv.CMS rodando local
-};
+Aliases aceitos: `NG_API_URL` / `CHELIFETV_API_URL` para a URL e `GIPHY_KEY` / `NG_GIPHY_API_KEY` para a chave.
+
+O `prebuild` executa `scripts/write-config.mjs`, que lê essas variáveis e escreve `public/config.json`. Como o Angular copia `public/` para o bundle, o arquivo chega ao `dist` e é lido em runtime pelo `RuntimeConfigService`.
+
+```bash
+# Linux/macOS
+API_URL=https://chelifetvcms.vertraweb.app/ GIPHY_API_KEY=xxxx npm run build
+
+# PowerShell
+$env:API_URL="https://chelifetvcms.vertraweb.app/"; $env:GIPHY_API_KEY="xxxx"; npm run build
 ```
 
-Para apontar para o back-end local, troque `isProduction` para `false`.
+Sem variáveis definidas o script **não** escreve nada, preservando um `config.json` local.
 
-O picker de GIFs do perfil usa a API do GIPHY, configurada em `src/app/environments/giphy.config.ts`.
+Para já publicar sem rebuild, gere direto no bundle:
+
+```bash
+npm run config -- --out dist/ChelifeTVWeb/browser
+```
+
+### Desenvolvimento local
+
+Copie `public/config.example.json` para `public/config.json` (arquivo ignorado pelo git) e aponte para o back-end local:
+
+```json
+{
+  "apiUrl": "http://localhost:5003/",
+  "giphyApiKey": ""
+}
+```
+
+Sem `public/config.json` o app cai no `apiUrl` de `src/app/environments/environment.ts`, que é apenas o fallback de produção. Com `giphyApiKey` vazia o picker de GIFs fica desabilitado.
 
 ## Estrutura do projeto
 
@@ -177,5 +200,5 @@ src/app
 
 ## Back-end
 
-O XerifeTV Web consome a API do **XerifeTv.CMS** (ASP.NET Core + MongoDB), que também é o painel
+O ChelifeTV Web consome a API do **ChelifeTV.CMS** (ASP.NET Core + MongoDB), que também é o painel
 administrativo do catálogo. A especificação da API está em [`api/v1.json`](api/v1.json).

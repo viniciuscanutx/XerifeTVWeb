@@ -1,7 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { tap } from 'rxjs';
-import { environment } from '../../environments/environment';
 import {
   Favorite,
   ProfileContentType,
@@ -10,6 +9,7 @@ import {
   SiteReview,
 } from '../models/profile.model';
 import { AuthService } from './auth.service';
+import { RuntimeConfigService } from './runtime-config.service';
 import { WatchProgress } from './watch-progress.service';
 
 export function profileError(error: unknown): string {
@@ -22,7 +22,12 @@ export function profileError(error: unknown): string {
 export class ProfileService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
-  private readonly base = `${environment.apiUrl.replace(/\/?$/, '/')}Api`;
+  private readonly runtime = inject(RuntimeConfigService);
+
+  /** Lido sob demanda: `config.json` só é carregado no app initializer. */
+  private get base(): string {
+    return `${this.runtime.apiUrl}Api`;
+  }
 
   selectBadge(badgeId: string | null) {
     return this.http.put<SiteProfile>(`${this.base}/Profile/Badge`, { badgeId });
