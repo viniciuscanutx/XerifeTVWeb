@@ -1,4 +1,4 @@
 {
-  "apiUrl": "https://chelifetvcms.vertraweb.app/",
+  "apiUrl": "http://localhost:<porta-do-cms>/",
   "giphyApiKey": ""
 }

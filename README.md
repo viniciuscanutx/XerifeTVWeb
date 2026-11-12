@@ -132,7 +132,7 @@ A URL da API e a chave do GIPHY **não ficam no código**: vêm de variáveis de
 
 | Variável | Para que serve |
 | --- | --- |
-| `API_URL` | URL base do ChelifeTV.CMS (ex.: `https://chelifetvcms.vertraweb.app/`) |
+| `API_URL` | URL base do ChelifeTV.CMS, com barra no final |
 | `GIPHY_API_KEY` | Chave da API do GIPHY usada no picker de GIFs do perfil |
 
 Aliases aceitos: `NG_API_URL` / `CHELIFETV_API_URL` para a URL e `GIPHY_KEY` / `NG_GIPHY_API_KEY` para a chave.
@@ -141,10 +141,10 @@ O `prebuild` executa `scripts/write-config.mjs`, que lê essas variáveis e escr
 
 ```bash
 # Linux/macOS
-API_URL=https://chelifetvcms.vertraweb.app/ GIPHY_API_KEY=xxxx npm run build
+API_URL=https://sua-api/ GIPHY_API_KEY=xxxx npm run build
 
 # PowerShell
-$env:API_URL="https://chelifetvcms.vertraweb.app/"; $env:GIPHY_API_KEY="xxxx"; npm run build
+$env:API_URL="https://sua-api/"; $env:GIPHY_API_KEY="xxxx"; npm run build
 ```
 
 Sem variáveis definidas o script **não** escreve nada, preservando um `config.json` local.
@@ -152,7 +152,7 @@ Sem variáveis definidas o script **não** escreve nada, preservando um `config.
 Para já publicar sem rebuild, gere direto no bundle:
 
 ```bash
-npm run config -- --out dist/ChelifeTVWeb/browser
+npm run config -- --out dist/XerifeTVWeb/browser
 ```
 
 ### Desenvolvimento local
@@ -161,12 +161,12 @@ Copie `public/config.example.json` para `public/config.json` (arquivo ignorado p
 
 ```json
 {
-  "apiUrl": "http://localhost:5003/",
+  "apiUrl": "http://localhost:<porta-do-cms>/",
   "giphyApiKey": ""
 }
 ```
 
-Sem `public/config.json` o app cai no `apiUrl` de `src/app/environments/environment.ts`, que é apenas o fallback de produção. Com `giphyApiKey` vazia o picker de GIFs fica desabilitado.
+Sem `public/config.json` o app usa a origem do site como base da API — o que, em `ng serve`, aponta para a própria SPA e não para o CMS. Com `giphyApiKey` vazia o picker de GIFs fica desabilitado.
 
 ## Estrutura do projeto
 
